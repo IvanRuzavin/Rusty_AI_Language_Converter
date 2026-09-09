@@ -68,6 +68,11 @@ identify canonical headers, implementations, examples, resources, compile
 definitions, documentation, and duplicates. It does not send or extract every
 file indiscriminately.
 
+The implemented first layer validates archive paths and entry types, applies
+expansion limits, hashes contents, detects duplicates, and assigns preliminary
+roles. Manifest interpretation and canonical-file selection are the next layer
+of this component.
+
 Primary output: `PackageInventory`.
 
 ### 4. C parser and normalizer
@@ -204,5 +209,5 @@ tests/
 docs/
 ```
 
-The next project step is to define the first Python data models and their JSON
-schemas before implementing network or model access.
+The next project step is selective content loading, manifest interpretation,
+and canonical-file selection before C parsing begins.

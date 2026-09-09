@@ -70,9 +70,9 @@ implement only a subset of their original package.
 ## Current status
 
 The repository contains its initial Python package, catalog data models, a
-validated local metadata loader, and an HTTPS archive downloader with a
-content-addressed cache. No archive parser, model client, or conversion command
-has been implemented yet.
+validated local metadata loader, an HTTPS archive downloader with a
+content-addressed cache, and safe extraction-free archive inventory. No C
+parser, model client, or conversion command has been implemented yet.
 
 The future model identifier will be configurable through `OPENAI_MODEL`. The
 cost-sensitive default is `gpt-5.6-luna`; the converter will not silently
@@ -101,6 +101,12 @@ To preview the package downloader without making a network request:
 
 ```bash
 PYTHONPATH=src python3 examples/step_04_download.py
+```
+
+After downloading a package, inspect and classify it without extracting files:
+
+```bash
+PYTHONPATH=src python3 examples/step_05_inspect.py
 ```
 
 API credentials must be provided through the environment or a secret manager.

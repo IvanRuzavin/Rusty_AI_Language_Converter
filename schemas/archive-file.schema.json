@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rusty-ai-language-converter.local/schemas/archive-file.schema.json",
+  "title": "ArchiveFile",
+  "description": "One safe regular file discovered inside a Click ZIP archive.",
+  "type": "object",
+  "properties": {
+    "path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "role": {
+      "enum": [
+        "manifest",
+        "example_metadata",
+        "c_header",
+        "c_source",
+        "example_source",
+        "build_file",
+        "documentation",
+        "generated_documentation",
+        "resource",
+        "other"
+      ]
+    },
+    "size_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "compressed_size_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "duplicate_of": {
+      "type": ["string", "null"]
+    }
+  },
+  "required": [
+    "path",
+    "role",
+    "size_bytes",
+    "compressed_size_bytes",
+    "sha256",
+    "duplicate_of"
+  ],
+  "additionalProperties": false
+}

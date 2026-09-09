@@ -161,3 +161,67 @@ PYTHONPATH=src python3 -m unittest discover -s tests -v
 Expected result: twenty-two tests run and finish with `OK`. Downloader tests use
 mock HTTP responses and temporary directories, so the test suite itself remains
 offline and does not modify `.cache`.
+
+## Step 5: Safely inspect and classify Click archives
+
+Step 5 added extraction-free ZIP inspection and the versioned `ArchiveFile` and
+`PackageInventory` records. Before reading member contents, the inspector
+rejects unsafe relative paths, backslash paths, drive prefixes, symbolic links,
+special files, encrypted entries, case-insensitive path collisions, excessive
+file counts, excessive expanded sizes, and suspicious compression ratios.
+
+Every regular file receives a logical role and SHA-256. Exact-content
+duplicates point to the first deterministic path instead of being treated as
+new conversion inputs. Generated Doxygen output is labeled
+`generated_documentation`, allowing later context-building stages to exclude
+it without losing provenance.
+
+### Inspect an already cached package
+
+First download the package if Step 4 has not been run:
+
+```bash
+PYTHONPATH=src python3 examples/step_04_download.py --yes
+```
+
+Then inspect it:
+
+```bash
+PYTHONPATH=src python3 examples/step_05_inspect.py
+```
+
+The inspection command performs no network access and writes no files. For the
+currently cached `IPS Display 2 Click` archive, it reports 121 regular files,
+2,455,328 expanded bytes, 16 duplicate files, and counts for each role. It does
+not extract archive members.
+
+If the package is not cached, one command can explicitly permit the ordinary
+HTTPS download before inspection:
+
+```bash
+PYTHONPATH=src python3 examples/step_05_inspect.py --download
+```
+
+To view the complete versioned inventory:
+
+```bash
+PYTHONPATH=src python3 examples/step_05_inspect.py --json
+```
+
+When debugging in VS Code, open `examples/step_05_inspect.py` and press `F5`.
+With no arguments it only reads an existing validated cache entry. Add
+`--download` to the launch configuration's `args` only when network access is
+intended.
+
+### Run all tests
+
+```bash
+PYTHONPATH=src python3 -m unittest discover -s tests -v
+```
+
+Expected result: thirty tests run and finish with `OK`. Archive security tests
+create synthetic ZIPs in temporary directories and remain offline.
+
+Step 5 itself has no model-client dependency, requires no OpenAI API key, and
+consumes no AI-model tokens. Only the explicitly permitted `--download` path
+can make a normal HTTPS request or write new files under `.cache`.

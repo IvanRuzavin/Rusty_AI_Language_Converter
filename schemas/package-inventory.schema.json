@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rusty-ai-language-converter.local/schemas/package-inventory.schema.json",
+  "title": "PackageInventory",
+  "description": "A versioned extraction-free inventory of a Click package archive.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1"
+    },
+    "archive": {
+      "$ref": "cached-archive.schema.json"
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "$ref": "archive-file.schema.json"
+      }
+    },
+    "total_expanded_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "common_root": {
+      "type": ["string", "null"]
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "archive",
+    "files",
+    "total_expanded_bytes",
+    "common_root",
+    "diagnostics"
+  ],
+  "additionalProperties": false
+}

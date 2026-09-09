@@ -11,7 +11,9 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/src"
             },
-            "args": ["--yes"]
+            "args": [
+                // "--yes"
+            ]
         }
     ]
 }

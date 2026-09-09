@@ -132,6 +132,16 @@ def _write_index(
             temporary_path.unlink(missing_ok=True)
 
 
+def load_cached_archive(
+    package: PackageRecord,
+    cache_dir: str | Path,
+) -> CachedArchive | None:
+    """Return a verified cached archive without performing network access."""
+    if not isinstance(package, PackageRecord):
+        raise TypeError("package must be a PackageRecord")
+    return _load_cached_archive(package, Path(cache_dir).resolve())
+
+
 def download_package(
     package: PackageRecord,
     cache_dir: str | Path,
