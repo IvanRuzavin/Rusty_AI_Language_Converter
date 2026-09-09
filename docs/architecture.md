@@ -56,6 +56,9 @@ Downloads a selected package, validates the response, computes a checksum, and
 stores the immutable archive in a content-addressed cache. Repeated conversions
 reuse the same archive.
 
+This component uses a normal HTTP client. It has no model-client dependency and
+never sends package bytes or URLs to an AI model merely to download them.
+
 Primary output: `CachedArchive`.
 
 ### 3. Archive classifier
@@ -103,6 +106,9 @@ Primary output: `ModelRequest`.
 Owns communication with the configured OpenAI model. It requests structured
 output, handles refusals and incomplete results, records token/latency metadata,
 and returns parsed data. Credentials are supplied externally.
+
+The model ID is read from `OPENAI_MODEL`. The initial cost-sensitive default is
+`gpt-5.6-luna`, and no automatic fallback may select a Sol model.
 
 The rest of the converter depends on a small model-client interface so the
 pipeline can be tested with a fake client and is not coupled to Open WebUI.

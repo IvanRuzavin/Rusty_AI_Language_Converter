@@ -10,6 +10,9 @@ resolution, file rendering, and validation remain ordinary program logic. The
 AI model receives a compact, structured representation of one Click package
 and only the parts of the C and Rust SDKs that package needs.
 
+Package downloads are normal HTTP requests made by the converter. They do not
+use an AI model or consume model tokens.
+
 ## Intended workflow
 
 ```text
@@ -48,6 +51,9 @@ The detailed correctness rules are in
 component boundaries and data flow are in
 [`docs/architecture.md`](docs/architecture.md).
 
+Completed steps and commands you can run yourself are recorded in
+[`docs/progress.md`](docs/progress.md).
+
 ## Reference material
 
 - `metadata_clicks_c.json` lists the downloadable C Click packages.
@@ -63,8 +69,32 @@ implement only a subset of their original package.
 
 ## Current status
 
-The repository is in the design phase. No downloader, parser, model client, or
-conversion command has been implemented yet.
+The repository contains its initial Python package, catalog data models, and a
+validated local loader for `metadata_clicks_c.json`. No downloader, parser,
+model client, or conversion command has been implemented yet.
+
+The future model identifier will be configurable through `OPENAI_MODEL`. The
+cost-sensitive default is `gpt-5.6-luna`; the converter will not silently
+upgrade a run to a Sol model.
+
+The current tests use only the Python standard library and can be run without
+installing the package:
+
+```bash
+PYTHONPATH=src python3 -m unittest discover -s tests -v
+```
+
+To see the current catalog models operate on an example record:
+
+```bash
+PYTHONPATH=src python3 examples/step_02_models.py
+```
+
+To load and search the complete local Click catalog:
+
+```bash
+PYTHONPATH=src python3 examples/step_03_catalog.py
+```
 
 API credentials must be provided through the environment or a secret manager.
 They must never be committed, stored in generated packages, or included in

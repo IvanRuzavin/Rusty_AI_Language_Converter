@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rusty-ai-language-converter.local/schemas/package-record.schema.json",
+  "title": "PackageRecord",
+  "description": "One downloadable Click package from the source catalog.",
+  "type": "object",
+  "properties": {
+    "catalog_id": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "minLength": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "normalized_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "download_url": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://.+\\.zip$"
+    }
+  },
+  "required": [
+    "catalog_id",
+    "category",
+    "name",
+    "normalized_name",
+    "download_url"
+  ],
+  "additionalProperties": false
+}

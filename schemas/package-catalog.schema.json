@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rusty-ai-language-converter.local/schemas/package-catalog.schema.json",
+  "title": "PackageCatalog",
+  "description": "A versioned collection of validated Click package records.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1"
+    },
+    "packages": {
+      "type": "array",
+      "items": {
+        "$ref": "package-record.schema.json"
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "packages"
+  ],
+  "additionalProperties": false
+}
