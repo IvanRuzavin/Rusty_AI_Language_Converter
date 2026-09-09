@@ -1,0 +1,7 @@
+# Project-root marker for MikroBUS Rust Tools.
+# Build, flash, and debug use the reusable SDK setup applied by the extension.
+[workspace]
+resolver = "3"
+
+[workspace.metadata.mikrobus-rust]
+entry = "main.rs"

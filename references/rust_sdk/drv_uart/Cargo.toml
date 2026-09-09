@@ -1,0 +1,17 @@
+[package]
+name = "drv_uart"
+version = "0.0.1"
+edition = "2024"
+author =  ["Ivan Ruzavin ivan.ruzavin98@gmail.com"]
+
+[profile.release]
+opt-level = 'z'
+lto = true
+
+[profile.dev]
+opt-level = 0
+lto = false
+
+[dependencies]
+drv_name = {path = "../drv_name"}
+hal_uart = {path = "../../../hal/lib/uart"}
