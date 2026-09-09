@@ -70,8 +70,9 @@ file indiscriminately.
 
 The implemented first layer validates archive paths and entry types, applies
 expansion limits, hashes contents, detects duplicates, and assigns preliminary
-roles. Manifest interpretation and canonical-file selection are the next layer
-of this component.
+roles. Its second layer interprets package and example manifests, follows CMake
+target source declarations, selectively loads canonical UTF-8 files, and keeps
+large resource contents out of the text bundle.
 
 Primary output: `PackageInventory`.
 
@@ -195,6 +196,7 @@ src/rusty_ai_converter/
 ├── catalog.py
 ├── download.py
 ├── archive.py
+├── source.py
 ├── models.py
 ├── parsing/
 ├── sdk_mapping/
@@ -209,5 +211,5 @@ tests/
 docs/
 ```
 
-The next project step is selective content loading, manifest interpretation,
-and canonical-file selection before C parsing begins.
+The next project step is C parsing and normalization into the first
+`ClickPackageIR` representation.

@@ -20,12 +20,25 @@ ARCHIVE_FILE_ROLES = frozenset(
         "example_metadata",
         "c_header",
         "c_source",
+        "assembly_source",
         "example_source",
         "build_file",
         "documentation",
         "generated_documentation",
         "resource",
         "other",
+    }
+)
+SOURCE_TEXT_PURPOSES = frozenset(
+    {
+        "package_manifest",
+        "example_metadata",
+        "driver_header",
+        "driver_source",
+        "driver_assembly",
+        "example_source",
+        "build_metadata",
+        "documentation",
     }
 )
 
@@ -375,5 +388,257 @@ class PackageInventory:
             "files": [file.to_dict() for file in self.files],
             "total_expanded_bytes": self.total_expanded_bytes,
             "common_root": self.common_root,
+            "diagnostics": list(self.diagnostics),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class ManifestLibrary:
+    """One canonical library directory declared by a package manifest."""
+
+    alias: str
+    subdir_name: str
+    path: str
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "alias", _required_text(self.alias, "alias"))
+        object.__setattr__(
+            self,
+            "subdir_name",
+            _required_text(self.subdir_name, "subdir_name"),
+        )
+        object.__setattr__(
+            self,
+            "path",
+            _logical_archive_file_path(self.path, "path"),
+        )
+
+    def to_dict(self) -> dict[str, str]:
+        return {
+            "alias": self.alias,
+            "subdir_name": self.subdir_name,
+            "path": self.path,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class PackageManifest:
+    """Validated identity and canonical directories from ``manifest.json``."""
+
+    manifest_path: str
+    display_name: str
+    package_name: str
+    package_type: str
+    version: str
+    product_id: str | None
+    libraries: tuple[ManifestLibrary, ...] = field(default_factory=tuple)
+    example_paths: tuple[str, ...] = field(default_factory=tuple)
+
+    def __post_init__(self) -> None:
+        manifest_path = _logical_archive_file_path(
+            self.manifest_path,
+            "manifest_path",
+        )
+        display_name = _required_text(self.display_name, "display_name")
+        package_name = _required_text(self.package_name, "package_name")
+        package_type = _required_text(self.package_type, "package_type")
+        version = _required_text(self.version, "version")
+        product_id = self.product_id
+        if product_id is not None:
+            product_id = _required_text(product_id, "product_id")
+
+        libraries = tuple(self.libraries)
+        if not libraries:
+            raise ValueError("package manifest must declare at least one library")
+        if any(not isinstance(library, ManifestLibrary) for library in libraries):
+            raise TypeError("libraries must contain only ManifestLibrary instances")
+        library_paths = [library.path for library in libraries]
+        if len(library_paths) != len(set(library_paths)):
+            raise ValueError("package manifest contains duplicate library paths")
+
+        example_paths = tuple(
+            _logical_archive_file_path(path, "example_path")
+            for path in self.example_paths
+        )
+        if len(example_paths) != len(set(example_paths)):
+            raise ValueError("package manifest contains duplicate example paths")
+
+        object.__setattr__(self, "manifest_path", manifest_path)
+        object.__setattr__(self, "display_name", display_name)
+        object.__setattr__(self, "package_name", package_name)
+        object.__setattr__(self, "package_type", package_type)
+        object.__setattr__(self, "version", version)
+        object.__setattr__(self, "product_id", product_id)
+        object.__setattr__(self, "libraries", libraries)
+        object.__setattr__(self, "example_paths", example_paths)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "manifest_path": self.manifest_path,
+            "display_name": self.display_name,
+            "package_name": self.package_name,
+            "package_type": self.package_type,
+            "version": self.version,
+            "product_id": self.product_id,
+            "libraries": [library.to_dict() for library in self.libraries],
+            "example_paths": list(self.example_paths),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class ExampleMetadata:
+    """Validated fields from one MikroE ``manifest.exm`` file."""
+
+    path: str
+    name: str
+    toolchains: tuple[str, ...] = field(default_factory=tuple)
+    hardware: tuple[str, ...] = field(default_factory=tuple)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "path", _logical_archive_file_path(self.path, "path"))
+        object.__setattr__(self, "name", _required_text(self.name, "name"))
+        object.__setattr__(
+            self,
+            "toolchains",
+            tuple(_required_text(item, "toolchain") for item in self.toolchains),
+        )
+        object.__setattr__(
+            self,
+            "hardware",
+            tuple(_required_text(item, "hardware item") for item in self.hardware),
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "path": self.path,
+            "name": self.name,
+            "toolchains": list(self.toolchains),
+            "hardware": list(self.hardware),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class SourceTextFile:
+    """One selected UTF-8 source or metadata file with exact provenance."""
+
+    path: str
+    purpose: str
+    sha256: str
+    size_bytes: int
+    content: str
+
+    def __post_init__(self) -> None:
+        path = _logical_archive_file_path(self.path, "path")
+        purpose = _required_text(self.purpose, "purpose")
+        digest = _required_text(self.sha256, "sha256").lower()
+        if purpose not in SOURCE_TEXT_PURPOSES:
+            raise ValueError(f"unsupported source text purpose: {purpose!r}")
+        if not _SHA256_RE.fullmatch(digest):
+            raise ValueError("sha256 must contain exactly 64 hexadecimal characters")
+        if not isinstance(self.size_bytes, int) or isinstance(self.size_bytes, bool):
+            raise TypeError("size_bytes must be an integer")
+        if self.size_bytes < 0:
+            raise ValueError("size_bytes must not be negative")
+        if not isinstance(self.content, str):
+            raise TypeError("content must be a string")
+        encoded_content = self.content.encode("utf-8")
+        if len(encoded_content) != self.size_bytes:
+            raise ValueError("size_bytes does not match UTF-8 content")
+        if sha256(encoded_content).hexdigest() != digest:
+            raise ValueError("sha256 does not match UTF-8 content")
+
+        object.__setattr__(self, "path", path)
+        object.__setattr__(self, "purpose", purpose)
+        object.__setattr__(self, "sha256", digest)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "path": self.path,
+            "purpose": self.purpose,
+            "sha256": self.sha256,
+            "size_bytes": self.size_bytes,
+            "content": self.content,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class SourceBundle:
+    """Canonical text inputs and resource metadata selected from an inventory."""
+
+    SCHEMA_VERSION: ClassVar[str] = "1"
+
+    inventory: PackageInventory
+    manifest: PackageManifest
+    examples: tuple[ExampleMetadata, ...] = field(default_factory=tuple)
+    text_files: tuple[SourceTextFile, ...] = field(default_factory=tuple)
+    resource_files: tuple[ArchiveFile, ...] = field(default_factory=tuple)
+    diagnostics: tuple[str, ...] = field(default_factory=tuple)
+    schema_version: str = SCHEMA_VERSION
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.inventory, PackageInventory):
+            raise TypeError("inventory must be a PackageInventory")
+        if not isinstance(self.manifest, PackageManifest):
+            raise TypeError("manifest must be a PackageManifest")
+
+        examples = tuple(self.examples)
+        if any(not isinstance(item, ExampleMetadata) for item in examples):
+            raise TypeError("examples must contain only ExampleMetadata instances")
+        text_files = tuple(self.text_files)
+        if any(not isinstance(item, SourceTextFile) for item in text_files):
+            raise TypeError("text_files must contain only SourceTextFile instances")
+        resource_files = tuple(self.resource_files)
+        if any(not isinstance(item, ArchiveFile) for item in resource_files):
+            raise TypeError("resource_files must contain only ArchiveFile instances")
+
+        text_paths = [file.path for file in text_files]
+        resource_paths = [file.path for file in resource_files]
+        if text_paths != sorted(text_paths, key=str.casefold):
+            raise ValueError("text_files must use deterministic path ordering")
+        if resource_paths != sorted(resource_paths, key=str.casefold):
+            raise ValueError("resource_files must use deterministic path ordering")
+        if len(text_paths + resource_paths) != len(set(text_paths + resource_paths)):
+            raise ValueError("source bundle selects a path more than once")
+
+        inventory_by_path = {file.path: file for file in self.inventory.files}
+        for selected in (*text_files, *resource_files):
+            inventory_file = inventory_by_path.get(selected.path)
+            if inventory_file is None or inventory_file.sha256 != selected.sha256:
+                raise ValueError("selected file does not match the package inventory")
+        if any(file.role != "resource" for file in resource_files):
+            raise ValueError("resource_files must contain only resource-role files")
+        if self.manifest.manifest_path not in text_paths:
+            raise ValueError("text_files must include the parsed package manifest")
+
+        diagnostics = tuple(
+            _required_text(diagnostic, "diagnostic")
+            for diagnostic in self.diagnostics
+        )
+        if self.schema_version != self.SCHEMA_VERSION:
+            raise ValueError(
+                f"unsupported source bundle schema version: {self.schema_version!r}"
+            )
+
+        object.__setattr__(self, "examples", examples)
+        object.__setattr__(self, "text_files", text_files)
+        object.__setattr__(self, "resource_files", resource_files)
+        object.__setattr__(self, "diagnostics", diagnostics)
+
+    def files_with_purpose(self, purpose: str) -> tuple[SourceTextFile, ...]:
+        normalized_purpose = _required_text(purpose, "purpose")
+        if normalized_purpose not in SOURCE_TEXT_PURPOSES:
+            raise ValueError(f"unsupported source text purpose: {normalized_purpose!r}")
+        return tuple(
+            file for file in self.text_files if file.purpose == normalized_purpose
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "schema_version": self.schema_version,
+            "inventory": self.inventory.to_dict(),
+            "manifest": self.manifest.to_dict(),
+            "examples": [example.to_dict() for example in self.examples],
+            "text_files": [file.to_dict() for file in self.text_files],
+            "resource_files": [file.to_dict() for file in self.resource_files],
             "diagnostics": list(self.diagnostics),
         }

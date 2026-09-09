@@ -73,6 +73,7 @@ class PackageCatalogTests(unittest.TestCase):
             "cached-archive.schema.json",
             "archive-file.schema.json",
             "package-inventory.schema.json",
+            "source-bundle.schema.json",
         ):
             schema_path = PROJECT_ROOT / "schemas" / schema_name
             schema = json.loads(schema_path.read_text(encoding="utf-8"))

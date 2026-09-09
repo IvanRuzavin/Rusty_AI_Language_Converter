@@ -15,6 +15,7 @@
         "example_metadata",
         "c_header",
         "c_source",
+        "assembly_source",
         "example_source",
         "build_file",
         "documentation",

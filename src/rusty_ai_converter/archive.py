@@ -27,6 +27,7 @@ _MANIFEST_NAMES = frozenset(
 _EXAMPLE_DIRECTORIES = frozenset({"example", "examples", "demo", "demos"})
 _C_HEADER_SUFFIXES = frozenset({".h", ".hh", ".hpp"})
 _C_SOURCE_SUFFIXES = frozenset({".c", ".cc", ".cpp"})
+_ASSEMBLY_SUFFIXES = frozenset({".s", ".asm"})
 _BUILD_NAMES = frozenset(
     {"cmakelists.txt", "makefile", "meson.build", "platformio.ini"}
 )
@@ -141,10 +142,14 @@ def classify_archive_path(path: str) -> str:
         is_example or base_name in {"main.c", "main.cc", "main.cpp"}
     ):
         return "example_source"
+    if suffix in _ASSEMBLY_SUFFIXES and is_example:
+        return "example_source"
     if suffix in _C_HEADER_SUFFIXES:
         return "c_header"
     if suffix in _C_SOURCE_SUFFIXES:
         return "c_source"
+    if suffix in _ASSEMBLY_SUFFIXES:
+        return "assembly_source"
     if (
         base_name in _BUILD_NAMES
         or base_name.startswith("click.")

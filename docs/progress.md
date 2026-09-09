@@ -225,3 +225,66 @@ create synthetic ZIPs in temporary directories and remain offline.
 Step 5 itself has no model-client dependency, requires no OpenAI API key, and
 consumes no AI-model tokens. Only the explicitly permitted `--download` path
 can make a normal HTTPS request or write new files under `.cache`.
+
+## Step 6: Interpret manifests and select canonical sources
+
+Step 6 added manifest-driven source selection and the versioned `SourceBundle`
+record. It strictly parses the package `manifest.json` and each selected
+`manifest.exm`, resolves their paths against the inspected inventory, and reads
+the `add_library` and `add_executable` source declarations from the applicable
+`CMakeLists.txt` files.
+
+The CMake handling is intentionally a bounded source-list reader, not a full
+CMake evaluator. Conditional compile definitions and dependency resolution
+remain inputs for later parsing and SDK-resolution stages; the complete build
+metadata text is retained so none of that information is lost.
+
+Selected UTF-8 text is limited to 2 MiB per file and 8 MiB in total by default.
+Each file is rechecked against its inventory size and SHA-256, and the complete
+archive checksum is verified again to guard against changes between stages.
+Large `*_resource.c` files remain resource metadata at this point instead of
+being loaded into future model context.
+
+### Select sources from the cached package
+
+```bash
+PYTHONPATH=src python3 examples/step_06_sources.py
+```
+
+For the current `IPS Display 2 Click` package, the command selects ten UTF-8
+files totaling 78,728 bytes: the package and example manifests, three build
+metadata files, two driver headers, one driver implementation, one canonical
+example, and the README. A 524,719-byte generated C resource is retained by
+metadata only. The copied example-library tree and 102 generated documentation
+files are not loaded.
+
+Print the complete source bundle, including selected text contents:
+
+```bash
+PYTHONPATH=src python3 examples/step_06_sources.py --json
+```
+
+If a selected package is not cached, explicitly permit its ordinary HTTPS
+download with:
+
+```bash
+PYTHONPATH=src python3 examples/step_06_sources.py "PACKAGE NAME" --download
+```
+
+When debugging in VS Code, open `examples/step_06_sources.py` and press `F5`.
+No arguments are needed for the already cached IPS Display 2 package.
+
+### Run all tests
+
+```bash
+PYTHONPATH=src python3 -m unittest discover -s tests -v
+```
+
+Expected result: thirty-five tests run and finish with `OK`. Step 6 tests cover
+manifest and CMake selection, duplicate exclusion, resource deferral, UTF-8
+validation, total text limits, unsafe manifest paths, and archive-change
+detection. They create temporary archives and remain offline.
+
+Source selection reads the existing cache without extracting or writing files.
+It has no model-client dependency, requires no OpenAI API key, and consumes no
+AI-model tokens. Only `--download` can perform normal HTTPS and cache writes.
