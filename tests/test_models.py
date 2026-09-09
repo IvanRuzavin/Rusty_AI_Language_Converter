@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 import unittest
 
-from rusty_ai_converter.models import PackageCatalog, PackageRecord
+from rusty_ai_converter.models import CachedArchive, PackageCatalog, PackageRecord
 
 
 PROJECT_ROOT = Path(__file__).parents[1]
@@ -76,6 +76,42 @@ class PackageCatalogTests(unittest.TestCase):
 
             self.assertEqual(schema["type"], "object")
             self.assertFalse(schema["additionalProperties"])
+
+
+class CachedArchiveTests(unittest.TestCase):
+    def test_serializes_archive_metadata_without_archive_bytes(self) -> None:
+        package = PackageRecord(
+            category="sensor",
+            name="Example Click",
+            download_url="https://example.com/example.zip",
+        )
+        archive = CachedArchive(
+            package=package,
+            archive_path=Path(".cache/archives/example.zip"),
+            sha256="a" * 64,
+            size_bytes=123,
+            cache_hit=False,
+        )
+
+        serialized = archive.to_dict()
+        self.assertEqual(serialized["package"], package.to_dict())
+        self.assertEqual(serialized["size_bytes"], 123)
+        self.assertNotIn("content", serialized)
+
+    def test_rejects_invalid_sha256(self) -> None:
+        package = PackageRecord(
+            category="sensor",
+            name="Example Click",
+            download_url="https://example.com/example.zip",
+        )
+        with self.assertRaisesRegex(ValueError, "64 hexadecimal"):
+            CachedArchive(
+                package=package,
+                archive_path=Path("archive.zip"),
+                sha256="not-a-hash",
+                size_bytes=123,
+                cache_hit=False,
+            )
 
 
 if __name__ == "__main__":

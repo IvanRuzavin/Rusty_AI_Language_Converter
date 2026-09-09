@@ -110,3 +110,54 @@ invalid in-memory data.
 
 Step 3 only reads `metadata_clicks_c.json`. It does not perform HTTP requests,
 write conversion output, require an API key, or consume AI-model tokens.
+
+## Step 4: Download and content-address Click archives
+
+Step 4 added a standard-library HTTP downloader. It streams one selected ZIP
+to a temporary file, enforces a 64 MiB default limit, rejects non-HTTPS
+redirects, verifies that the result is a ZIP, calculates SHA-256, and atomically
+moves valid content into `.cache/archives/<sha256>.zip`.
+
+An index under `.cache/index` connects the source package to its content hash.
+A repeated request verifies the cached file and avoids HTTP unless `--force` is
+used.
+
+### Preview without downloading
+
+```bash
+PYTHONPATH=src python3 examples/step_04_download.py
+```
+
+Expected result: the script selects `IPS Display 2 Click`, prints its URL and
+cache destination, and states that no network request was made. This is also
+what happens when the file is launched with `F5` without arguments.
+
+### Perform the real HTTP download
+
+```bash
+PYTHONPATH=src python3 examples/step_04_download.py --yes
+```
+
+Expected result: the archive is saved below `.cache/archives`, and its size and
+SHA-256 are printed. Running the same command again should report `validated
+cache` instead of `network download`.
+
+To deliberately refresh the cached package:
+
+```bash
+PYTHONPATH=src python3 examples/step_04_download.py --yes --force
+```
+
+These commands use ordinary HTTPS only. They never call an AI model, require an
+OpenAI API key, or consume model tokens. The `.cache` directory is ignored by
+Git and may be deleted when cached downloads are no longer needed.
+
+### Run all tests
+
+```bash
+PYTHONPATH=src python3 -m unittest discover -s tests -v
+```
+
+Expected result: twenty-two tests run and finish with `OK`. Downloader tests use
+mock HTTP responses and temporary directories, so the test suite itself remains
+offline and does not modify `.cache`.

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from hashlib import sha256
+from pathlib import Path
 import re
 from typing import Any, ClassVar, Iterable, Mapping
 from urllib.parse import urlparse
@@ -11,6 +12,7 @@ from urllib.parse import urlparse
 
 _WHITESPACE_RE = re.compile(r"\s+")
 _IDENTIFIER_RE = re.compile(r"[^a-z0-9]+")
+_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
 def _required_text(value: str, field_name: str) -> str:
@@ -159,3 +161,50 @@ class PackageCatalog:
 
     def __len__(self) -> int:
         return len(self.packages)
+
+
+@dataclass(frozen=True, slots=True)
+class CachedArchive:
+    """A validated package archive stored in the local content cache."""
+
+    SCHEMA_VERSION: ClassVar[str] = "1"
+
+    package: PackageRecord
+    archive_path: Path
+    sha256: str
+    size_bytes: int
+    cache_hit: bool
+    schema_version: str = SCHEMA_VERSION
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.package, PackageRecord):
+            raise TypeError("package must be a PackageRecord")
+
+        archive_path = Path(self.archive_path)
+        digest = _required_text(self.sha256, "sha256").lower()
+        if not _SHA256_RE.fullmatch(digest):
+            raise ValueError("sha256 must contain exactly 64 hexadecimal characters")
+        if not isinstance(self.size_bytes, int) or isinstance(self.size_bytes, bool):
+            raise TypeError("size_bytes must be an integer")
+        if self.size_bytes < 0:
+            raise ValueError("size_bytes must not be negative")
+        if not isinstance(self.cache_hit, bool):
+            raise TypeError("cache_hit must be a boolean")
+        if self.schema_version != self.SCHEMA_VERSION:
+            raise ValueError(
+                f"unsupported cached archive schema version: {self.schema_version!r}"
+            )
+
+        object.__setattr__(self, "archive_path", archive_path)
+        object.__setattr__(self, "sha256", digest)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize archive metadata without including archive bytes."""
+        return {
+            "schema_version": self.schema_version,
+            "package": self.package.to_dict(),
+            "archive_path": str(self.archive_path),
+            "sha256": self.sha256,
+            "size_bytes": self.size_bytes,
+            "cache_hit": self.cache_hit,
+        }

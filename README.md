@@ -69,9 +69,10 @@ implement only a subset of their original package.
 
 ## Current status
 
-The repository contains its initial Python package, catalog data models, and a
-validated local loader for `metadata_clicks_c.json`. No downloader, parser,
-model client, or conversion command has been implemented yet.
+The repository contains its initial Python package, catalog data models, a
+validated local metadata loader, and an HTTPS archive downloader with a
+content-addressed cache. No archive parser, model client, or conversion command
+has been implemented yet.
 
 The future model identifier will be configurable through `OPENAI_MODEL`. The
 cost-sensitive default is `gpt-5.6-luna`; the converter will not silently
@@ -94,6 +95,12 @@ To load and search the complete local Click catalog:
 
 ```bash
 PYTHONPATH=src python3 examples/step_03_catalog.py
+```
+
+To preview the package downloader without making a network request:
+
+```bash
+PYTHONPATH=src python3 examples/step_04_download.py
 ```
 
 API credentials must be provided through the environment or a secret manager.
