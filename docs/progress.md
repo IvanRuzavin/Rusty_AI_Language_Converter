@@ -917,3 +917,105 @@ beneath the ignored `output` directory. Validation never accesses the network,
 requires no API key, makes no OpenAI request, and consumes no model tokens. As
 in earlier examples, only an explicit `--download` can permit an ordinary HTTPS
 package download if the selected package is absent from the local cache.
+
+## Step 14: Connect the implemented stages with an orchestrator
+
+Step 14 adds `PipelineConfig`, `run_conversion`, `ConversionRun`, and
+`OrchestrationError`. One call now coordinates these nine stages in order:
+
+```text
+catalog → archive → source → parser → sdk_mapping
+        → context → model → render → validate
+```
+
+The important control boundary is preserved. If no validated cache entry is
+available, the pipeline stops unless `allow_download` is explicitly true. The
+download is still an ordinary bounded HTTPS request. The model-client factory
+is not constructed or invoked until all local preprocessing, SDK resolution,
+and request-size checks succeed.
+
+The orchestrator accepts any implementation of the existing `ModelClient`
+protocol. This step's demonstration supplies `FakeModelClient` only. Its
+fixture is created from the resolved translation plan so it has the exact crate
+and coverage data required by the renderer. It records zero token usage and
+never contacts OpenAI.
+
+`ConversionRun` retains the non-secret pipeline configuration and every
+versioned boundary needed to audit the run:
+
+- selected `PackageRecord` and `CachedArchive`;
+- complete `TranslationPlan` and `ModelRequest`;
+- `ModelConversion`, including model identity and token usage;
+- `RenderedPackage` hashes and coverage;
+- the final local `ValidationReport`.
+
+Cross-stage package identities, archive hashes, request hashes, output paths,
+and rendered file records are checked again when the run object is created. A
+failed local validation is returned as `local_validation_failed`, preserving
+all diagnostics. A failure before a complete run raises `OrchestrationError`
+with the stage name, such as `catalog`, `archive`, `context`, or `model`.
+
+### Run the complete offline pipeline
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_14_orchestrator.py
+```
+
+The example prints one progress line for each stage. With the current cached
+IPS Display 2 package, it reports:
+
+```text
+10 canonical selected text files
+4 parsed C source files
+44 resolved calls
+3 required Rust crates
+109698 request bytes (approximately 27425 input tokens)
+0 actual model tokens
+```
+
+The exact request size can change when the parser, SDK references, or prompt
+change. It is displayed before a real model could be called so token use can be
+reviewed. The generated files are placed under
+`output/step_14/ips-display-2`; repeating the command reuses identical output.
+
+Print the complete audit object:
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_14_orchestrator.py --json
+```
+
+This JSON is intentionally detailed: it includes normalized C source facts,
+the complete model request, fake generated code, coverage, hashes, and local
+tool diagnostics.
+
+To process a package that is not already cached, ordinary HTTPS must be enabled
+explicitly:
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_14_orchestrator.py \
+    "PACKAGE NAME" --download
+```
+
+The `--download` flag does not enable an AI model. This example has no option
+that can call OpenAI.
+
+When debugging in VS Code, open `examples/step_14_orchestrator.py` and press
+`F5`. Watch the integrated terminal to see each completed pipeline stage. The
+existing launch configuration supplies `.venv`, the working directory, and
+`PYTHONPATH`.
+
+### Run all tests
+
+```bash
+PYTHONPATH=src .venv/bin/python -m unittest discover -s tests -v
+```
+
+Expected result: seventy-five tests finish with `OK`. Five orchestrator tests
+cover the full offline pipeline, subsequent cache and output reuse, download
+denial before HTTP/model activity, ambiguous catalog selection, model-factory
+ordering, and an auditable local-validation failure.
+
+The demonstration writes only to the ignored output directory and normally
+reads the existing package cache. It makes no network request, requires no API
+key, makes no OpenAI request, and consumes no model tokens. Only the explicit
+`--download` option can enable the ordinary package HTTP request.

@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rusty-ai-language-converter.local/schemas/conversion-run.schema.json",
+  "title": "ConversionRun",
+  "type": "object",
+  "properties": {
+    "schema_version": {"const": "1"},
+    "status": {
+      "enum": ["local_validation_passed", "local_validation_failed"]
+    },
+    "network_download_performed": {"type": "boolean"},
+    "config": {"$ref": "#/$defs/pipelineConfig"},
+    "package": {"$ref": "package-record.schema.json"},
+    "archive": {"$ref": "cached-archive.schema.json"},
+    "translation_plan": {"$ref": "translation-plan.schema.json"},
+    "model_request": {"$ref": "model-request.schema.json"},
+    "model_conversion": {"$ref": "model-conversion.schema.json"},
+    "rendered_package": {"$ref": "rendered-package.schema.json"},
+    "validation_report": {"$ref": "validation-report.schema.json"}
+  },
+  "required": [
+    "schema_version",
+    "status",
+    "network_download_performed",
+    "config",
+    "package",
+    "archive",
+    "translation_plan",
+    "model_request",
+    "model_conversion",
+    "rendered_package",
+    "validation_report"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "pipelineConfig": {
+      "type": "object",
+      "properties": {
+        "query": {"type": "string", "minLength": 1},
+        "metadata_path": {"type": "string", "minLength": 1},
+        "cache_dir": {"type": "string", "minLength": 1},
+        "c_sdk_path": {"type": "string", "minLength": 1},
+        "rust_sdk_path": {"type": "string", "minLength": 1},
+        "output_root": {"type": "string", "minLength": 1},
+        "allow_download": {"type": "boolean"},
+        "max_archive_bytes": {"type": "integer", "minimum": 1},
+        "download_timeout_seconds": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "max_request_bytes": {"type": "integer", "minimum": 1},
+        "max_render_bytes": {"type": "integer", "minimum": 1},
+        "validation_timeout_seconds": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "max_diagnostic_bytes": {"type": "integer", "minimum": 1},
+        "rustfmt_executable": {"type": "string", "minLength": 1},
+        "cargo_executable": {"type": "string", "minLength": 1}
+      },
+      "required": [
+        "query",
+        "metadata_path",
+        "cache_dir",
+        "c_sdk_path",
+        "rust_sdk_path",
+        "output_root",
+        "allow_download",
+        "max_archive_bytes",
+        "download_timeout_seconds",
+        "max_request_bytes",
+        "max_render_bytes",
+        "validation_timeout_seconds",
+        "max_diagnostic_bytes",
+        "rustfmt_executable",
+        "cargo_executable"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

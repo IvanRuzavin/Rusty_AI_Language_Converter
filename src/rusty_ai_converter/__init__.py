@@ -98,6 +98,16 @@ from rusty_ai_converter.validate import (
     ValidationReport,
     validate_rendered_package,
 )
+from rusty_ai_converter.orchestrator import (
+    PIPELINE_STAGES,
+    ConversionRun,
+    ModelClientFactory,
+    OrchestrationError,
+    PipelineConfig,
+    ProgressCallback,
+    run_conversion,
+    select_catalog_package,
+)
 
 __all__ = [
     "CatalogError",
@@ -113,6 +123,7 @@ __all__ = [
     "COVERAGE_KINDS",
     "COVERAGE_STATUSES",
     "ContextBuildError",
+    "ConversionRun",
     "DEFAULT_MAX_OUTPUT_TOKENS",
     "DEFAULT_MAX_DIAGNOSTIC_BYTES",
     "DEFAULT_MAX_REQUEST_BYTES",
@@ -132,6 +143,7 @@ __all__ = [
     "ModelClient",
     "ModelClientConfigurationError",
     "ModelClientError",
+    "ModelClientFactory",
     "ModelConversion",
     "ModelMessage",
     "ModelOutput",
@@ -139,11 +151,15 @@ __all__ = [
     "ModelRequest",
     "ModelUsage",
     "OpenAIModelClient",
+    "OrchestrationError",
     "PackageCatalog",
     "PackageInventory",
     "PackageManifest",
     "PackageRecord",
     "PROMPT_VERSION",
+    "PIPELINE_STAGES",
+    "PipelineConfig",
+    "ProgressCallback",
     "REQUIRED_ARTIFACT_PATHS",
     "RenderedFile",
     "RenderedPackage",
@@ -176,6 +192,8 @@ __all__ = [
     "render_default_mikrobus",
     "render_package",
     "required_coverage_symbols",
+    "run_conversion",
+    "select_catalog_package",
     "validate_rendered_package",
 ]
 

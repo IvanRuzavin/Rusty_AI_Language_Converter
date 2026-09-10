@@ -220,6 +220,24 @@ Coordinates stages, persists state, supports retries, and decides whether a
 package is accepted, repaired, blocked, or assigned for human review. It is the
 entry point used by a future CLI or extension integration.
 
+The first implemented coordinator runs all nine available stages behind one
+`PipelineConfig`. Configuration carries filesystem locations, byte limits,
+tool timeouts, and the explicit `allow_download` permission. Without that
+permission, a missing cache entry stops the run before HTTP or model activity.
+
+The model is supplied through a factory that is not invoked until parsing, SDK
+resolution, and bounded context construction have succeeded. This keeps the
+offline fake and live OpenAI implementations behind the same `ModelClient`
+boundary while allowing the fake to derive an exact fixture from the resolved
+plan. Progress callbacks expose stage completion without coupling the core to a
+terminal UI.
+
+`ConversionRun` connects the selected package, cached archive, translation
+plan, model request and response, rendered artifacts, and local validation
+report. Its constructor rechecks identities and hashes across those boundaries.
+A validation failure returns an auditable `local_validation_failed` run; an
+earlier stage failure raises `OrchestrationError` with the responsible stage.
+
 ## Intermediate representation boundaries
 
 The first schemas will cover these records:
@@ -288,6 +306,7 @@ tests/
 docs/
 ```
 
-The next project step is an orchestrator that connects the implemented stages
-behind one controlled command. SDK-environment compilation will be added when
-an extension-generated setup is available to the converter.
+The next project step is a production CLI that selects the offline or explicit
+live OpenAI backend and persists audit reports outside the four-file package.
+SDK-environment compilation will be added when an extension-generated setup is
+available to the converter.

@@ -80,7 +80,8 @@ request/response boundary. A deterministic artifact renderer now validates
 cross-stage provenance, dependencies, and coverage before atomically creating
 the four-file project. Local artifact-integrity, Rust formatting/syntax, and
 offline Cargo-metadata validation are also implemented. Full target-SDK
-compilation and the complete conversion command have not been implemented yet.
+compilation is not implemented yet. The pipeline coordinator is implemented;
+its current end-to-end demonstration intentionally uses an offline fake model.
 
 The model identifier is configurable through `OPENAI_MODEL`. The
 cost-sensitive default is `gpt-5.6-luna`; the converter will not silently
@@ -174,6 +175,12 @@ To render that fixture and run the local validation gate:
 
 ```bash
 PYTHONPATH=src .venv/bin/python examples/step_13_validate.py
+```
+
+To run every implemented stage through one offline orchestrator:
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_14_orchestrator.py
 ```
 
 API credentials must be provided through the environment or a secret manager.
