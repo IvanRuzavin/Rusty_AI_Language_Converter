@@ -56,6 +56,21 @@ from rusty_ai_converter.context import (
     ModelRequest,
     build_model_request,
 )
+from rusty_ai_converter.model_client import (
+    FakeModelClient,
+    ModelClient,
+    ModelClientError,
+    ModelConversion,
+    ModelUsage,
+)
+from rusty_ai_converter.model_output import (
+    COVERAGE_KINDS,
+    COVERAGE_STATUSES,
+    CoverageEntry,
+    ModelOutput,
+    ModelOutputError,
+    parse_model_output,
+)
 
 __all__ = [
     "CatalogError",
@@ -67,15 +82,25 @@ __all__ = [
     "ArchiveInspectionError",
     "CachedArchive",
     "CallResolution",
+    "COVERAGE_KINDS",
+    "COVERAGE_STATUSES",
     "ContextBuildError",
     "DEFAULT_MAX_REQUEST_BYTES",
     "CParserError",
     "ClickPackageIR",
+    "CoverageEntry",
     "DownloadError",
     "ExampleMetadata",
     "ManifestLibrary",
+    "FakeModelClient",
+    "ModelClient",
+    "ModelClientError",
+    "ModelConversion",
     "ModelMessage",
+    "ModelOutput",
+    "ModelOutputError",
     "ModelRequest",
+    "ModelUsage",
     "PackageCatalog",
     "PackageInventory",
     "PackageManifest",
@@ -100,6 +125,7 @@ __all__ = [
     "load_cached_archive",
     "parse_catalog_data",
     "parse_c_file",
+    "parse_model_output",
     "parse_source_bundle",
 ]
 

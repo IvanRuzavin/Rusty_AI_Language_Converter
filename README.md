@@ -74,8 +74,10 @@ validated local metadata loader, an HTTPS archive downloader with a
 content-addressed cache, safe extraction-free archive inventory, and
 manifest-driven canonical source selection, a Tree-sitter-based C intermediate
 representation, deterministic C-to-Rust SDK call resolution, and bounded
-provider-neutral model-context construction. No model client or conversion
-command has been implemented yet.
+provider-neutral model-context construction. A strict model-output contract and
+an offline fake model client now exercise the complete request/response boundary
+without calling OpenAI. The real OpenAI adapter, artifact renderer, and complete
+conversion command have not been implemented yet.
 
 The future model identifier will be configurable through `OPENAI_MODEL`. The
 cost-sensitive default is `gpt-5.6-luna`; the converter will not silently
@@ -141,6 +143,12 @@ To build and inspect the model request without sending it anywhere:
 
 ```bash
 PYTHONPATH=src .venv/bin/python examples/step_09_context.py
+```
+
+To pass that request through the offline fake model boundary:
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_10_fake_model.py
 ```
 
 API credentials must be provided through the environment or a secret manager.

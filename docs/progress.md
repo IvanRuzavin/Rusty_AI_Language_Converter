@@ -559,3 +559,73 @@ Context construction reads only local parsed structures and SDK references. It
 does not write files, access the network, require an OpenAI key, or consume AI
 tokens. As before, only the example's explicit `--download` option permits
 ordinary HTTPS and cache writes.
+
+## Step 10: Validate output through an offline model-client boundary
+
+Step 10 adds three related boundaries:
+
+- `ModelOutput` is the only data the model may generate. It contains
+  `library.rs`, `main.rs`, required Rust crate names, a source-API coverage
+  ledger, and explicit assumptions, warnings, and unsupported items.
+- `ModelConversion` attaches the model ID, provider response ID, originating
+  context hash, prompt version, actual usage counters, and latency.
+- the asynchronous `ModelClient` protocol lets the pipeline use a fake in
+  tests and a real provider in a later step.
+
+The model does not generate `Cargo.toml` or `mikrobus.rs`. Those remain inputs
+to the deterministic renderer planned for a later step. The parser also does
+not extract JSON from prose or Markdown fences: the complete response must be
+one valid object with exactly the schema's fields. Runtime validation adds
+rules that JSON Schema alone does not conveniently express, including required
+`no_std`/`no_main` and local module declarations, unique source-symbol coverage,
+and a written explanation for every unsupported item.
+
+The closed schema design follows OpenAI's Structured Outputs requirements that
+object fields be required and objects use `additionalProperties: false`:
+
+<https://developers.openai.com/api/docs/guides/structured-outputs>
+
+### Run the offline fake against the IPS Display 2 request
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_10_fake_model.py
+```
+
+The command rebuilds the real local request and passes it to `FakeModelClient`.
+It reports `fake-local`, retains the request hash and prompt version, and shows
+zero input and output tokens. The returned Rust is deliberately labeled as an
+incomplete fixture; it demonstrates validation and provenance, not translation
+quality.
+
+Print the complete fake `ModelConversion`:
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_10_fake_model.py --json
+```
+
+When debugging in VS Code, open `examples/step_10_fake_model.py` and press
+`F5`. No arguments are required for the cached IPS Display 2 package.
+
+If the package is not cached, the command exits without network access. Add
+`--download` only when you explicitly want to permit the same ordinary HTTPS
+package downloader used by earlier steps:
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_10_fake_model.py --download
+```
+
+### Run all tests
+
+```bash
+PYTHONPATH=src .venv/bin/python -m unittest discover -s tests -v
+```
+
+Expected result: fifty-one tests finish with `OK`. The six new tests cover
+valid strict JSON, deterministic crate ordering, unknown fields, Markdown
+wrappers, required Rust module declarations, unsupported-item explanations,
+request provenance, sequential fake response IDs, and zero fake token usage.
+
+The normal Step 10 example reads local files and the existing validated cache.
+It requires no OpenAI key, makes no OpenAI API call, writes no generated Rust
+files, and consumes no model tokens. Only its explicit `--download` option can
+make an ordinary HTTPS request and write package data under `.cache`.
