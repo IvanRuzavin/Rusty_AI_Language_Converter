@@ -372,3 +372,100 @@ validated cache. It performs no network requests, extracts or writes no package
 files, requires no OpenAI key, and consumes no AI-model tokens. As in earlier
 examples, only the explicit `--download` option permits normal HTTPS/cache
 writes.
+
+## Step 8: Index and resolve the C/Rust SDK pair
+
+Step 8 adds two versioned deterministic records:
+
+- `SdkMappingDatabase` inventories the public C and Rust SDK functions and
+  records direct, adapted, or unsupported mappings.
+- `TranslationPlan` classifies every call from `ClickPackageIR`, records its
+  callers and evidence, and calculates the minimal Rust crate set.
+
+The C SDK headers are parsed with the Step 7 Tree-sitter parser. Rust
+`pub fn` declarations and complete bodies are read with a small deterministic
+scanner that understands balanced braces, comments, and quoted literals. Each
+SDK function retains its signature, source path, line range, and source-file
+SHA-256.
+
+Exact public function names map only when precisely one Rust crate exports the
+name. Six reviewed rules cover the SDK's C default-initializer pattern. Five
+create the corresponding configuration type, while one initializes the
+one-wire object itself:
+
+```text
+*_configure_default(&config) -> *_config_t::default()
+one_wire_configure_default(&object) -> one_wire_t::default()
+```
+
+The rule is accepted only when the expected Rust crate and exported type both
+exist. It is not a fuzzy or AI-generated match. C APIs without an exact target
+or reviewed adapter are marked `unsupported`.
+
+The current checked-in SDK references contain:
+
+- 105 public C functions;
+- 65 public Rust functions with exact C-name matches;
+- 6 reviewed default-construction adapters;
+- 34 unsupported C functions.
+
+The unsupported total describes the complete SDK pair. It does not block a
+package unless that package actually calls one of those functions. CAN, DMA,
+and RTC account for most of the current SDK-wide gap.
+
+### Run the SDK resolver
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_08_sdk_mapping.py
+```
+
+For the cached IPS Display 2 package, the example classifies 44 distinct calls:
+
+- 23 package-local function calls and 1 package-local macro;
+- 8 direct Rust SDK calls and 1 SDK default-construction adapter;
+- 5 platform timing/startup adapters;
+- 5 logging adapters;
+- 1 C-standard-library adapter.
+
+No calls remain unresolved. The required Rust crates are
+`drv_digital_out`, `drv_spi_master`, and `system`.
+
+Print the complete package translation plan:
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_08_sdk_mapping.py --json
+```
+
+Print the reusable SDK-wide mapping database instead:
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_08_sdk_mapping.py --sdk-json
+```
+
+Resolve another package already in the cache by passing its name. Add
+`--download` only when you explicitly want to permit an ordinary HTTPS
+download:
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_08_sdk_mapping.py \
+    "PACKAGE NAME" --download
+```
+
+When debugging in VS Code, open `examples/step_08_sdk_mapping.py` and press
+`F5`. No arguments are required for the cached IPS Display 2 package.
+
+### Run all tests
+
+```bash
+PYTHONPATH=src .venv/bin/python -m unittest discover -s tests -v
+```
+
+Expected result: forty-two tests finish with `OK`. The Step 8 tests cover exact
+matches, reviewed default adapters, unsupported functions, balanced Rust-body
+scanning, complete reference-SDK counts, package-local functions/macros,
+platform timing, required crates, and unresolved-call blocking.
+
+SDK indexing and resolution read only checked-in local files. They perform no
+network requests, write no generated output, require no OpenAI key, and consume
+no AI-model tokens. As before, only the example's explicit `--download` option
+permits normal HTTPS and cache writes.

@@ -72,9 +72,9 @@ implement only a subset of their original package.
 The repository contains its initial Python package, catalog data models, a
 validated local metadata loader, an HTTPS archive downloader with a
 content-addressed cache, safe extraction-free archive inventory, and
-manifest-driven canonical source selection. The first Tree-sitter-based C
-intermediate representation is also implemented. No SDK resolver, model
-client, or conversion command has been implemented yet.
+manifest-driven canonical source selection, a Tree-sitter-based C intermediate
+representation, and deterministic C-to-Rust SDK call resolution. No context
+builder, model client, or conversion command has been implemented yet.
 
 The future model identifier will be configurable through `OPENAI_MODEL`. The
 cost-sensitive default is `gpt-5.6-luna`; the converter will not silently
@@ -128,6 +128,12 @@ To parse those sources into `ClickPackageIR`:
 
 ```bash
 PYTHONPATH=src .venv/bin/python examples/step_07_parse_c.py
+```
+
+To index both reference SDKs and resolve the parsed package's calls:
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_08_sdk_mapping.py
 ```
 
 API credentials must be provided through the environment or a secret manager.

@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rusty-ai-language-converter.local/schemas/translation-plan.schema.json",
+  "title": "TranslationPlan",
+  "type": "object",
+  "properties": {
+    "schema_version": {"const": "1"},
+    "package_ir": {"$ref": "click-package-ir.schema.json"},
+    "sdk_mapping_version": {"type": "string", "minLength": 1},
+    "resolutions": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/callResolution"}
+    },
+    "required_rust_crates": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "schema_version",
+    "package_ir",
+    "sdk_mapping_version",
+    "resolutions",
+    "required_rust_crates",
+    "diagnostics"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "callResolution": {
+      "type": "object",
+      "properties": {
+        "call": {"type": "string", "minLength": 1},
+        "status": {
+          "enum": [
+            "local_function",
+            "local_macro",
+            "sdk_direct",
+            "sdk_adapter",
+            "platform_adapter",
+            "standard_adapter",
+            "logging_adapter",
+            "unresolved"
+          ]
+        },
+        "called_by": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "rust_crate": {"type": ["string", "null"]},
+        "rust_target": {"type": ["string", "null"]},
+        "guidance": {"type": "string", "minLength": 1},
+        "evidence_paths": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "call",
+        "status",
+        "called_by",
+        "rust_crate",
+        "rust_target",
+        "guidance",
+        "evidence_paths"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -38,6 +38,16 @@ from rusty_ai_converter.parsing import (
     parse_c_file,
     parse_source_bundle,
 )
+from rusty_ai_converter.sdk_mapping import (
+    CallResolution,
+    SdkFunction,
+    SdkFunctionMapping,
+    SdkIndexError,
+    SdkMappingDatabase,
+    TranslationPlan,
+    build_sdk_mapping_database,
+    build_translation_plan,
+)
 
 __all__ = [
     "CatalogError",
@@ -48,6 +58,7 @@ __all__ = [
     "ArchiveFile",
     "ArchiveInspectionError",
     "CachedArchive",
+    "CallResolution",
     "CParserError",
     "ClickPackageIR",
     "DownloadError",
@@ -60,7 +71,14 @@ __all__ = [
     "SourceBundle",
     "SourceSelectionError",
     "SourceTextFile",
+    "SdkFunction",
+    "SdkFunctionMapping",
+    "SdkIndexError",
+    "SdkMappingDatabase",
+    "TranslationPlan",
     "build_source_bundle",
+    "build_sdk_mapping_database",
+    "build_translation_plan",
     "classify_archive_path",
     "download_package",
     "inspect_archive",

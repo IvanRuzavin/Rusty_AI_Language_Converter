@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rusty-ai-language-converter.local/schemas/sdk-mapping.schema.json",
+  "title": "SdkMappingDatabase",
+  "type": "object",
+  "properties": {
+    "schema_version": {"const": "1"},
+    "c_functions": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/sdkFunction"}
+    },
+    "rust_functions": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/sdkFunction"}
+    },
+    "mappings": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/functionMapping"}
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "schema_version",
+    "c_functions",
+    "rust_functions",
+    "mappings",
+    "diagnostics"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "sdkFunction": {
+      "type": "object",
+      "properties": {
+        "language": {"enum": ["c", "rust"]},
+        "name": {"type": "string", "minLength": 1},
+        "module": {"type": "string", "minLength": 1},
+        "signature": {"type": "string", "minLength": 1},
+        "source_path": {"type": "string", "minLength": 1},
+        "source_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "start_line": {"type": "integer", "minimum": 1},
+        "end_line": {"type": "integer", "minimum": 1},
+        "body": {"type": ["string", "null"]},
+        "crate_name": {"type": ["string", "null"]}
+      },
+      "required": [
+        "language",
+        "name",
+        "module",
+        "signature",
+        "source_path",
+        "source_sha256",
+        "start_line",
+        "end_line",
+        "body",
+        "crate_name"
+      ],
+      "additionalProperties": false
+    },
+    "functionMapping": {
+      "type": "object",
+      "properties": {
+        "c_function": {"$ref": "#/$defs/sdkFunction"},
+        "status": {"enum": ["direct", "adapted", "unsupported"]},
+        "rust_function": {
+          "anyOf": [
+            {"$ref": "#/$defs/sdkFunction"},
+            {"type": "null"}
+          ]
+        },
+        "rust_crate": {"type": ["string", "null"]},
+        "rust_expression": {"type": ["string", "null"]},
+        "notes": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "c_function",
+        "status",
+        "rust_function",
+        "rust_crate",
+        "rust_expression",
+        "notes"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

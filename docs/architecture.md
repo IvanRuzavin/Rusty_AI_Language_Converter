@@ -102,6 +102,15 @@ current package.
 If a required operation has no verified Rust equivalent, resolution stops and
 reports the missing capability before model tokens are spent.
 
+The implemented resolver indexes public C declarations with the existing
+Tree-sitter parser and public Rust functions with a deterministic source
+scanner. Exact-name mappings retain both signatures and function provenance.
+A small reviewed allowlist handles semantic adaptations such as C
+`*_configure_default` functions becoming Rust `Default::default()`
+construction. Package-local functions and macros, timing, runtime startup,
+logging, and C-standard-library operations are classified separately. Unknown
+or unsupported calls remain explicit blockers.
+
 Primary output: `TranslationPlan`.
 
 ### 6. Context builder
@@ -217,5 +226,5 @@ tests/
 docs/
 ```
 
-The next project step is building the deterministic C-to-Rust SDK mapping and
-resolving the external calls recorded in `ClickPackageIR`.
+The next project step is building compact, injection-resistant model context
+from `TranslationPlan` and only the relevant SDK evidence.
