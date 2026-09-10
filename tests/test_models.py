@@ -80,6 +80,7 @@ class PackageCatalogTests(unittest.TestCase):
             "model-request.schema.json",
             "model-output.schema.json",
             "model-conversion.schema.json",
+            "rendered-package.schema.json",
         ):
             schema_path = PROJECT_ROOT / "schemas" / schema_name
             schema = json.loads(schema_path.read_text(encoding="utf-8"))

@@ -78,6 +78,18 @@ from rusty_ai_converter.model_output import (
     model_output_response_schema,
     parse_model_output,
 )
+from rusty_ai_converter.render import (
+    DEFAULT_MAX_RENDER_BYTES,
+    MIKROBUS_1_SIGNALS,
+    REQUIRED_ARTIFACT_PATHS,
+    ArtifactRenderError,
+    RenderedFile,
+    RenderedPackage,
+    render_cargo_toml,
+    render_default_mikrobus,
+    render_package,
+    required_coverage_symbols,
+)
 
 __all__ = [
     "CatalogError",
@@ -87,6 +99,7 @@ __all__ = [
     "SOURCE_TEXT_PURPOSES",
     "ArchiveFile",
     "ArchiveInspectionError",
+    "ArtifactRenderError",
     "CachedArchive",
     "CallResolution",
     "COVERAGE_KINDS",
@@ -94,6 +107,7 @@ __all__ = [
     "ContextBuildError",
     "DEFAULT_MAX_OUTPUT_TOKENS",
     "DEFAULT_MAX_REQUEST_BYTES",
+    "DEFAULT_MAX_RENDER_BYTES",
     "DEFAULT_OPENAI_MODEL",
     "DEFAULT_REASONING_EFFORT",
     "DEFAULT_TIMEOUT_SECONDS",
@@ -103,6 +117,7 @@ __all__ = [
     "DownloadError",
     "ExampleMetadata",
     "ManifestLibrary",
+    "MIKROBUS_1_SIGNALS",
     "FakeModelClient",
     "ModelClient",
     "ModelClientConfigurationError",
@@ -119,6 +134,9 @@ __all__ = [
     "PackageManifest",
     "PackageRecord",
     "PROMPT_VERSION",
+    "REQUIRED_ARTIFACT_PATHS",
+    "RenderedFile",
+    "RenderedPackage",
     "SourceBundle",
     "SourceSelectionError",
     "SourceTextFile",
@@ -141,6 +159,10 @@ __all__ = [
     "model_output_response_schema",
     "parse_model_output",
     "parse_source_bundle",
+    "render_cargo_toml",
+    "render_default_mikrobus",
+    "render_package",
+    "required_coverage_symbols",
 ]
 
 __version__ = "0.1.0"

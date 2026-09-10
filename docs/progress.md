@@ -736,3 +736,100 @@ usage, incomplete responses, refusals, malformed output, and timeouts.
 The test suite and default example remain offline and consume no model tokens.
 The explicitly supplied `--download` option can separately permit an ordinary
 HTTPS package download, while only `--yes-use-openai` permits the model call.
+
+## Step 12: Deterministically render the four-file package
+
+Step 12 adds the `render_package` stage and versioned `RenderedPackage` report.
+The renderer accepts a `TranslationPlan`, its exact `ModelRequest`, and the
+resulting `ModelConversion`. Before any directory is created, it verifies:
+
+- the translation plan contains no unresolved external calls;
+- request source paths belong to that plan;
+- response context hash and prompt version match the request;
+- model-reported Rust SDK crates exactly match the deterministic plan;
+- no coverage entry or diagnostic reports unsupported functionality;
+- every public driver-header function, meaningful non-empty macro, semantic
+  struct/union/enum or standalone typedef, public global, and deferred resource
+  has a coverage-ledger entry;
+- the four rendered files remain below the configurable 4 MiB total limit.
+
+Empty preprocessor definitions are excluded from required coverage because the
+current package uses them as header guards. A typedef generated from the same
+named struct or enum is treated as one semantic type instead of demanding two
+duplicate coverage decisions.
+
+The model supplies only `library.rs` and `main.rs`. The renderer creates the
+same lightweight `Cargo.toml` workspace marker used by the checked-in Rust
+examples and a replaceable `mikrobus.rs` containing exactly these mikroBUS 1
+signals:
+
+```text
+AN, RST, CS, SCK, MISO, MOSI, PWM, INT, RX, TX, SCL, SDA
+```
+
+Every default pin value is `0xFF`; there are no guessed `GPIO_*` values or
+additional sockets.
+
+Files are first written to a private staging directory and then published by a
+single directory rename. Repeating an identical render performs no writes and
+reports `reused_existing: true`. If any existing file differs, is missing, is
+extra, or is a symbolic link, rendering stops without overwriting it.
+
+### Render the offline demonstration
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_12_render.py
+```
+
+The first run creates:
+
+```text
+output/step_12/ips-display-2/
+├── Cargo.toml
+├── library.rs
+├── main.rs
+└── mikrobus.rs
+```
+
+It reports four files, their sizes and hashes, and 294 coverage entries found
+in the current IPS Display 2 package. Run the same command again to see the
+safe `reused identical` path.
+
+The generated Rust is deliberately a tiny offline fixture demonstrating the
+renderer; it is not presented as a translated or validated IPS Display 2
+driver. The later orchestrator will instead pass the validated Step 11 model
+result to this same renderer.
+
+Print the complete provenance and coverage report:
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_12_render.py --json
+```
+
+Check that Cargo accepts the workspace-marker TOML:
+
+```bash
+cargo metadata --no-deps --format-version 1 \
+    --manifest-path output/step_12/ips-display-2/Cargo.toml
+```
+
+When debugging in VS Code, open `examples/step_12_render.py` and press `F5`.
+No arguments are required for the cached package. Use `--output-root PATH` to
+render the fixture somewhere else. If the package is not cached, only the
+explicit `--download` argument permits the ordinary HTTPS download.
+
+### Run all tests
+
+```bash
+PYTHONPATH=src .venv/bin/python -m unittest discover -s tests -v
+```
+
+Expected result: sixty-five tests finish with `OK`. Seven renderer tests cover
+the exact file set, TOML metadata, twelve blank pin declarations, idempotent
+reuse, conflict preservation, provenance and dependency mismatches, incomplete
+and unsupported coverage, and the total-size limit.
+
+The Step 12 demonstration writes only beneath the ignored `output` directory.
+It normally reads the existing package cache, performs no OpenAI API request,
+requires no API key, and consumes no model tokens. Its optional `--download`
+path is the same ordinary HTTPS package download used in earlier steps.

@@ -76,8 +76,10 @@ manifest-driven canonical source selection, a Tree-sitter-based C intermediate
 representation, deterministic C-to-Rust SDK call resolution, and bounded
 provider-neutral model-context construction. A strict model-output contract and
 both offline and OpenAI Responses API clients now exercise the complete
-request/response boundary. The artifact renderer and complete conversion command
-have not been implemented yet.
+request/response boundary. A deterministic artifact renderer now validates
+cross-stage provenance, dependencies, and coverage before atomically creating
+the four-file project. Compilation and the complete conversion command have not
+been implemented yet.
 
 The model identifier is configurable through `OPENAI_MODEL`. The
 cost-sensitive default is `gpt-5.6-luna`; the converter will not silently
@@ -160,6 +162,12 @@ PYTHONPATH=src .venv/bin/python examples/step_11_openai.py
 The live path requires the separately installed OpenAI SDK, an
 `OPENAI_API_KEY`, and the explicit `--yes-use-openai` flag. See Step 11 in
 [`docs/progress.md`](docs/progress.md) before enabling it.
+
+To render and inspect an offline four-file fixture:
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_12_render.py
+```
 
 API credentials must be provided through the environment or a secret manager.
 They must never be committed, stored in generated packages, or included in

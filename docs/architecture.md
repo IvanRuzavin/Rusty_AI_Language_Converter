@@ -168,6 +168,24 @@ Validates model-provided Rust contents and writes the final package atomically.
 It deterministically creates `Cargo.toml` and the default `mikrobus.rs`, then
 records provenance and coverage in a conversion report.
 
+The implemented renderer requires the translation plan, exact model request,
+and validated model conversion together. Before writing, it verifies request
+and response hashes and prompt versions, requires the model dependency list to
+equal the deterministic SDK plan, rejects unresolved or unsupported work, and
+checks coverage for public header functions, meaningful macros, semantic types,
+public globals, and resources.
+
+It writes a staging directory and publishes the complete package with one
+directory rename. An identical package is reused without rewriting it; any
+changed, extra, missing, non-regular, or symbolic-link entry causes a conflict
+instead of an overwrite. `RenderedPackage` records all four content hashes and
+sizes plus source/model provenance, coverage, assumptions, and warnings.
+
+The current `Cargo.toml` matches the lightweight workspace marker used by the
+checked-in examples. Machine-specific SDK dependencies remain the extension's
+responsibility. The default `mikrobus.rs` declares only the twelve standard
+mikroBUS 1 signals, each as `0xFF`, so no board mapping is guessed.
+
 Primary output: `RenderedPackage`.
 
 ### 9. Compiler and validators
@@ -252,5 +270,6 @@ tests/
 docs/
 ```
 
-The next project step is the deterministic artifact renderer for `Cargo.toml`,
-the model-provided Rust sources, and the default `mikrobus.rs` mapping.
+The next project step is local Rust syntax, formatting, and project validation,
+followed by SDK-environment compilation when an extension-generated setup is
+available.
