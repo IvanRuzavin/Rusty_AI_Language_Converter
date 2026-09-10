@@ -72,18 +72,26 @@ implement only a subset of their original package.
 The repository contains its initial Python package, catalog data models, a
 validated local metadata loader, an HTTPS archive downloader with a
 content-addressed cache, safe extraction-free archive inventory, and
-manifest-driven canonical source selection. No C parser, model client, or
-conversion command has been implemented yet.
+manifest-driven canonical source selection. The first Tree-sitter-based C
+intermediate representation is also implemented. No SDK resolver, model
+client, or conversion command has been implemented yet.
 
 The future model identifier will be configurable through `OPENAI_MODEL`. The
 cost-sensitive default is `gpt-5.6-luna`; the converter will not silently
 upgrade a run to a Sol model.
 
-The current tests use only the Python standard library and can be run without
-installing the package:
+Step 7 introduces the first third-party runtime dependencies. Install the
+pinned parser wheels in the configured virtual environment:
 
 ```bash
-PYTHONPATH=src python3 -m unittest discover -s tests -v
+.venv/bin/python -m pip install --only-binary=:all: \
+    tree-sitter==0.26.0 tree-sitter-c==0.24.2
+```
+
+Then run the complete test suite:
+
+```bash
+PYTHONPATH=src .venv/bin/python -m unittest discover -s tests -v
 ```
 
 To see the current catalog models operate on an example record:
@@ -114,6 +122,12 @@ To parse package metadata and load only canonical source text:
 
 ```bash
 PYTHONPATH=src python3 examples/step_06_sources.py
+```
+
+To parse those sources into `ClickPackageIR`:
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_07_parse_c.py
 ```
 
 API credentials must be provided through the environment or a secret manager.

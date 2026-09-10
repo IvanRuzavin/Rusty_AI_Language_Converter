@@ -1,0 +1,335 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rusty-ai-language-converter.local/schemas/click-package-ir.schema.json",
+  "title": "ClickPackageIR",
+  "description": "Normalized Tree-sitter facts extracted from canonical Click C sources.",
+  "type": "object",
+  "properties": {
+    "schema_version": {"const": "1"},
+    "source_bundle": {"$ref": "source-bundle.schema.json"},
+    "files": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/parsedCFile"}
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "required": ["schema_version", "source_bundle", "files", "diagnostics"],
+  "additionalProperties": false,
+  "$defs": {
+    "span": {
+      "type": "object",
+      "properties": {
+        "file_path": {"type": "string", "minLength": 1},
+        "start_line": {"type": "integer", "minimum": 1},
+        "start_column": {"type": "integer", "minimum": 1},
+        "end_line": {"type": "integer", "minimum": 1},
+        "end_column": {"type": "integer", "minimum": 1},
+        "start_byte": {"type": "integer", "minimum": 0},
+        "end_byte": {"type": "integer", "minimum": 0}
+      },
+      "required": [
+        "file_path",
+        "start_line",
+        "start_column",
+        "end_line",
+        "end_column",
+        "start_byte",
+        "end_byte"
+      ],
+      "additionalProperties": false
+    },
+    "conditions": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "include": {
+      "type": "object",
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "is_system": {"type": "boolean"},
+        "directive": {"type": "string", "minLength": 1},
+        "conditions": {"$ref": "#/$defs/conditions"},
+        "span": {"$ref": "#/$defs/span"}
+      },
+      "required": ["path", "is_system", "directive", "conditions", "span"],
+      "additionalProperties": false
+    },
+    "macro": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "parameters": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "replacement": {"type": "string"},
+        "definition": {"type": "string", "minLength": 1},
+        "documentation": {"type": ["string", "null"]},
+        "conditions": {"$ref": "#/$defs/conditions"},
+        "span": {"$ref": "#/$defs/span"}
+      },
+      "required": [
+        "name",
+        "parameters",
+        "replacement",
+        "definition",
+        "documentation",
+        "conditions",
+        "span"
+      ],
+      "additionalProperties": false
+    },
+    "parameter": {
+      "type": "object",
+      "properties": {
+        "name": {"type": ["string", "null"]},
+        "declaration": {"type": "string", "minLength": 1}
+      },
+      "required": ["name", "declaration"],
+      "additionalProperties": false
+    },
+    "function": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "return_type": {"type": "string", "minLength": 1},
+        "parameters": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/parameter"}
+        },
+        "signature": {"type": "string", "minLength": 1},
+        "body": {"type": ["string", "null"]},
+        "storage": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "calls": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "documentation": {"type": ["string", "null"]},
+        "conditions": {"$ref": "#/$defs/conditions"},
+        "span": {"$ref": "#/$defs/span"}
+      },
+      "required": [
+        "name",
+        "return_type",
+        "parameters",
+        "signature",
+        "body",
+        "storage",
+        "calls",
+        "documentation",
+        "conditions",
+        "span"
+      ],
+      "additionalProperties": false
+    },
+    "field": {
+      "type": "object",
+      "properties": {
+        "name": {"type": ["string", "null"]},
+        "declaration": {"type": "string", "minLength": 1}
+      },
+      "required": ["name", "declaration"],
+      "additionalProperties": false
+    },
+    "composite": {
+      "type": "object",
+      "properties": {
+        "kind": {"enum": ["struct", "union"]},
+        "name": {"type": ["string", "null"]},
+        "fields": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/field"}
+        },
+        "definition": {"type": "string", "minLength": 1},
+        "documentation": {"type": ["string", "null"]},
+        "conditions": {"$ref": "#/$defs/conditions"},
+        "span": {"$ref": "#/$defs/span"}
+      },
+      "required": [
+        "kind",
+        "name",
+        "fields",
+        "definition",
+        "documentation",
+        "conditions",
+        "span"
+      ],
+      "additionalProperties": false
+    },
+    "enumMember": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "value": {"type": ["string", "null"]}
+      },
+      "required": ["name", "value"],
+      "additionalProperties": false
+    },
+    "enum": {
+      "type": "object",
+      "properties": {
+        "name": {"type": ["string", "null"]},
+        "members": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/enumMember"}
+        },
+        "definition": {"type": "string", "minLength": 1},
+        "documentation": {"type": ["string", "null"]},
+        "conditions": {"$ref": "#/$defs/conditions"},
+        "span": {"$ref": "#/$defs/span"}
+      },
+      "required": [
+        "name",
+        "members",
+        "definition",
+        "documentation",
+        "conditions",
+        "span"
+      ],
+      "additionalProperties": false
+    },
+    "typedef": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "target": {"type": "string", "minLength": 1},
+        "declaration": {"type": "string", "minLength": 1},
+        "documentation": {"type": ["string", "null"]},
+        "conditions": {"$ref": "#/$defs/conditions"},
+        "span": {"$ref": "#/$defs/span"}
+      },
+      "required": [
+        "name",
+        "target",
+        "declaration",
+        "documentation",
+        "conditions",
+        "span"
+      ],
+      "additionalProperties": false
+    },
+    "variable": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "type_text": {"type": "string", "minLength": 1},
+        "declaration": {"type": "string", "minLength": 1},
+        "initializer": {"type": ["string", "null"]},
+        "storage": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        },
+        "conditions": {"$ref": "#/$defs/conditions"},
+        "span": {"$ref": "#/$defs/span"}
+      },
+      "required": [
+        "name",
+        "type_text",
+        "declaration",
+        "initializer",
+        "storage",
+        "conditions",
+        "span"
+      ],
+      "additionalProperties": false
+    },
+    "preprocessorCondition": {
+      "type": "object",
+      "properties": {
+        "kind": {"enum": ["if", "ifdef", "ifndef", "elif", "else"]},
+        "expression": {"type": "string", "minLength": 1},
+        "directive": {"type": "string", "minLength": 1},
+        "span": {"$ref": "#/$defs/span"}
+      },
+      "required": ["kind", "expression", "directive", "span"],
+      "additionalProperties": false
+    },
+    "diagnostic": {
+      "type": "object",
+      "properties": {
+        "severity": {"enum": ["warning", "error"]},
+        "message": {"type": "string", "minLength": 1},
+        "span": {"$ref": "#/$defs/span"}
+      },
+      "required": ["severity", "message", "span"],
+      "additionalProperties": false
+    },
+    "parsedCFile": {
+      "type": "object",
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "purpose": {
+          "enum": ["driver_header", "driver_source", "example_source"]
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "parser": {"type": "string", "minLength": 1},
+        "includes": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/include"}
+        },
+        "macros": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/macro"}
+        },
+        "functions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/function"}
+        },
+        "composites": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/composite"}
+        },
+        "enums": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/enum"}
+        },
+        "typedefs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/typedef"}
+        },
+        "global_variables": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/variable"}
+        },
+        "preprocessor_conditions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/preprocessorCondition"}
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/diagnostic"}
+        }
+      },
+      "required": [
+        "path",
+        "purpose",
+        "sha256",
+        "parser",
+        "includes",
+        "macros",
+        "functions",
+        "composites",
+        "enums",
+        "typedefs",
+        "global_variables",
+        "preprocessor_conditions",
+        "diagnostics"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

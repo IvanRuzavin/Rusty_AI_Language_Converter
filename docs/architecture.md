@@ -82,6 +82,12 @@ Parses canonical C headers and sources with Tree-sitter. It retains raw source
 spans while extracting declarations, macro bodies, preprocessor conditions,
 Doxygen documentation, function bodies, references, and call relationships.
 
+The implemented first IR records parser versions and per-file hashes, and
+extracts includes, macros, function declarations and definitions, call edges,
+structs, unions, enums, typedefs, global variables, conditional-compilation
+context, documentation, and exact byte/line ranges. Recoverable grammar errors
+remain explicit diagnostics instead of discarding the rest of a file.
+
 Regex parsing is allowed only as a recovery mechanism that emits reduced-
 confidence diagnostics.
 
@@ -211,5 +217,5 @@ tests/
 docs/
 ```
 
-The next project step is C parsing and normalization into the first
-`ClickPackageIR` representation.
+The next project step is building the deterministic C-to-Rust SDK mapping and
+resolving the external calls recorded in `ClickPackageIR`.

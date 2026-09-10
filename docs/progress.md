@@ -288,3 +288,87 @@ detection. They create temporary archives and remain offline.
 Source selection reads the existing cache without extracting or writing files.
 It has no model-client dependency, requires no OpenAI API key, and consumes no
 AI-model tokens. Only `--download` can perform normal HTTPS and cache writes.
+
+## Step 7: Parse C into `ClickPackageIR`
+
+Step 7 added the first non-standard runtime dependencies and pins them in
+`pyproject.toml`:
+
+- `tree-sitter==0.26.0`
+- `tree-sitter-c==0.24.2`
+
+Install their binary wheels in the project virtual environment:
+
+```bash
+.venv/bin/python -m pip install --only-binary=:all: \
+    tree-sitter==0.26.0 tree-sitter-c==0.24.2
+```
+
+This installation command accesses the Python package index and writes only to
+`.venv`. It does not require an OpenAI key or call an AI model.
+
+The parser converts the canonical driver headers, implementations, and example
+sources from `SourceBundle` into a versioned `ClickPackageIR`. For every parsed
+file it records the exact parser/grammar versions and source SHA-256, then
+extracts:
+
+- includes and whether they use system or local syntax;
+- object-like and function-like macros with complete replacements;
+- function declarations and definitions, parameters, bodies, storage classes,
+  documentation, and called expressions;
+- structs, unions, fields, enums, members, and typedefs;
+- file-scope variables and initializers;
+- preprocessor conditions and the condition chain applying to each symbol;
+- one-based line/column positions and zero-based byte ranges;
+- recoverable Tree-sitter warnings and syntax errors.
+
+### Parse the cached IPS Display 2 package
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_07_parse_c.py
+```
+
+The current package produces four parsed C files and 27 function definitions:
+24 driver functions and the example's `application_init`, `application_task`,
+and `main`. The summary also prints 21 potential external calls that will be
+inputs to SDK resolution.
+
+The header currently reports one recoverable missing-`#endif` grammar warning.
+The parser retains the other extracted facts and exposes the exact warning
+location rather than treating the complete header as unusable.
+
+Print the complete versioned IR, including exact function bodies and source
+slices:
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_07_parse_c.py --json
+```
+
+Process another package and explicitly permit ordinary HTTPS if it is not yet
+cached:
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_07_parse_c.py \
+    "PACKAGE NAME" --download
+```
+
+When debugging in VS Code, open `examples/step_07_parse_c.py` and press `F5`.
+No arguments are required for the cached IPS Display 2 package.
+
+### Run all tests
+
+```bash
+PYTHONPATH=src .venv/bin/python -m unittest discover -s tests -v
+```
+
+Expected result: thirty-nine tests run and finish with `OK`. Parser tests cover
+macros, documentation, structs, enums, typedefs, globals, prototypes,
+definitions, call extraction, source reconstruction from byte ranges,
+preprocessor context, function-pointer discrimination, and recoverable syntax
+diagnostics.
+
+After dependencies are installed, parsing reads only local source text and the
+validated cache. It performs no network requests, extracts or writes no package
+files, requires no OpenAI key, and consumes no AI-model tokens. As in earlier
+examples, only the explicit `--download` option permits normal HTTPS/cache
+writes.
