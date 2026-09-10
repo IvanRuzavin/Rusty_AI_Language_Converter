@@ -73,8 +73,9 @@ The repository contains its initial Python package, catalog data models, a
 validated local metadata loader, an HTTPS archive downloader with a
 content-addressed cache, safe extraction-free archive inventory, and
 manifest-driven canonical source selection, a Tree-sitter-based C intermediate
-representation, and deterministic C-to-Rust SDK call resolution. No context
-builder, model client, or conversion command has been implemented yet.
+representation, deterministic C-to-Rust SDK call resolution, and bounded
+provider-neutral model-context construction. No model client or conversion
+command has been implemented yet.
 
 The future model identifier will be configurable through `OPENAI_MODEL`. The
 cost-sensitive default is `gpt-5.6-luna`; the converter will not silently
@@ -134,6 +135,12 @@ To index both reference SDKs and resolve the parsed package's calls:
 
 ```bash
 PYTHONPATH=src .venv/bin/python examples/step_08_sdk_mapping.py
+```
+
+To build and inspect the model request without sending it anywhere:
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_09_context.py
 ```
 
 API credentials must be provided through the environment or a secret manager.

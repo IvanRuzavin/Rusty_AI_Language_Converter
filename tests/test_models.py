@@ -77,6 +77,7 @@ class PackageCatalogTests(unittest.TestCase):
             "click-package-ir.schema.json",
             "sdk-mapping.schema.json",
             "translation-plan.schema.json",
+            "model-request.schema.json",
         ):
             schema_path = PROJECT_ROOT / "schemas" / schema_name
             schema = json.loads(schema_path.read_text(encoding="utf-8"))

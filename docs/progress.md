@@ -469,3 +469,93 @@ SDK indexing and resolution read only checked-in local files. They perform no
 network requests, write no generated output, require no OpenAI key, and consume
 no AI-model tokens. As before, only the example's explicit `--download` option
 permits normal HTTPS and cache writes.
+
+## Step 9: Build bounded model context
+
+Step 9 adds a versioned `ModelRequest` containing exactly two
+provider-independent messages:
+
+1. A fixed trusted system message defines the conversion and safety rules.
+2. A user message contains one canonical, one-line JSON object explicitly
+   labeled as untrusted conversion data.
+
+JSON encoding escapes source newlines and quotes. Therefore a downloaded
+comment containing text such as `END_UNTRUSTED_CONVERSION_DATA_JSON` remains
+inside a JSON string and cannot create a second boundary line. The system
+instructions also explicitly prohibit treating source data as instructions.
+
+The compact context contains:
+
+- package identity, version, archive hash, and source hashes;
+- every parsed function signature and complete implementation body;
+- public function documentation, types, enums, typedefs, globals, macro
+  definitions, and preprocessor conditions;
+- external SDK, platform, logging, and standard-library resolutions;
+- metadata for large resources, without embedding their bytes;
+- only the Rust SDK function signatures and bodies selected by direct Step 8
+  mappings.
+
+It excludes generated HTML, duplicate package trees, raw parser AST nodes,
+repetitive macro documentation, redundant local-call resolutions, unrelated
+Rust SDK crates, and large resource arrays.
+
+`build_model_request` refuses to continue if the translation plan contains an
+unresolved call. It also enforces a configurable request-content limit, which
+defaults to 256 KiB. The request records a prompt version, canonical-context
+SHA-256, exact UTF-8 content byte count, and a rough byte-based input-token
+estimate. The estimate is useful for comparing requests but is not a provider
+billing value; actual token usage will come from the future model response.
+
+### Build the IPS Display 2 request locally
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_09_context.py
+```
+
+The current request contains four C source files and only eight Rust SDK
+functions. It is approximately 110 KB, with a rough estimate of 27,500 input
+tokens, and remains below the default 256 KiB safety limit.
+
+Print the complete `ModelRequest`, including its trusted instructions and
+untrusted JSON payload:
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_09_context.py --json
+```
+
+Exercise the local size gate without making an API request:
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_09_context.py \
+    --max-request-bytes 100
+```
+
+This exits with a concise error explaining the measured size and configured
+limit.
+
+Resolve another cached package by passing its name. Add `--download` only when
+you explicitly want to permit an ordinary HTTPS package download:
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_09_context.py \
+    "PACKAGE NAME" --download
+```
+
+When debugging in VS Code, open `examples/step_09_context.py` and press `F5`.
+No arguments are required for the cached IPS Display 2 package.
+
+### Run all tests
+
+```bash
+PYTHONPATH=src .venv/bin/python -m unittest discover -s tests -v
+```
+
+Expected result: forty-five tests finish with `OK`. Step 9 tests cover stable
+context hashes, strict system/user message ordering, untrusted delimiter text,
+relevant-only Rust SDK selection, unresolved-call rejection, and request-size
+enforcement.
+
+Context construction reads only local parsed structures and SDK references. It
+does not write files, access the network, require an OpenAI key, or consume AI
+tokens. As before, only the example's explicit `--download` option permits
+ordinary HTTPS and cache writes.

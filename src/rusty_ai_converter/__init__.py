@@ -48,6 +48,14 @@ from rusty_ai_converter.sdk_mapping import (
     build_sdk_mapping_database,
     build_translation_plan,
 )
+from rusty_ai_converter.context import (
+    DEFAULT_MAX_REQUEST_BYTES,
+    PROMPT_VERSION,
+    ContextBuildError,
+    ModelMessage,
+    ModelRequest,
+    build_model_request,
+)
 
 __all__ = [
     "CatalogError",
@@ -59,15 +67,20 @@ __all__ = [
     "ArchiveInspectionError",
     "CachedArchive",
     "CallResolution",
+    "ContextBuildError",
+    "DEFAULT_MAX_REQUEST_BYTES",
     "CParserError",
     "ClickPackageIR",
     "DownloadError",
     "ExampleMetadata",
     "ManifestLibrary",
+    "ModelMessage",
+    "ModelRequest",
     "PackageCatalog",
     "PackageInventory",
     "PackageManifest",
     "PackageRecord",
+    "PROMPT_VERSION",
     "SourceBundle",
     "SourceSelectionError",
     "SourceTextFile",
@@ -78,6 +91,7 @@ __all__ = [
     "TranslationPlan",
     "build_source_bundle",
     "build_sdk_mapping_database",
+    "build_model_request",
     "build_translation_plan",
     "classify_archive_path",
     "download_package",

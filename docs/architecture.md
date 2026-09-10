@@ -120,6 +120,16 @@ translation plan. Stable translation rules and SDK mappings are placed before
 package-specific content. Generated HTML, duplicate files, irrelevant SDK
 drivers, and large resource arrays are excluded.
 
+The implemented builder emits exactly two provider-neutral messages. The
+trusted system message is a fixed, versioned constant. The user message holds
+one canonical JSON object between explicit boundaries; downloaded source text
+is JSON-escaped and labeled as untrusted data. Only normalized C facts,
+complete function bodies, externally relevant call decisions, resource
+metadata, and the eight Rust functions selected for the current IPS Display 2
+plan are included. Unresolved calls and oversized requests fail locally before
+any provider is contacted. A content hash and approximate token estimate make
+request changes visible and auditable.
+
 Primary output: `ModelRequest`.
 
 ### 7. Model client
@@ -226,5 +236,5 @@ tests/
 docs/
 ```
 
-The next project step is building compact, injection-resistant model context
-from `TranslationPlan` and only the relevant SDK evidence.
+The next project step is defining the strict model-output schema and adding a
+cost-controlled model-client interface with a fake client for offline tests.

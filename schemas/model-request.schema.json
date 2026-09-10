@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rusty-ai-language-converter.local/schemas/model-request.schema.json",
+  "title": "ModelRequest",
+  "type": "object",
+  "properties": {
+    "schema_version": {"const": "1"},
+    "prompt_version": {"type": "string", "minLength": 1},
+    "context_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "messages": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "object",
+          "properties": {
+            "role": {"const": "system"},
+            "content": {"type": "string", "minLength": 1}
+          },
+          "required": ["role", "content"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "role": {"const": "user"},
+            "content": {"type": "string", "minLength": 1}
+          },
+          "required": ["role", "content"],
+          "additionalProperties": false
+        }
+      ],
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "request_bytes": {"type": "integer", "minimum": 1},
+    "estimated_input_tokens": {"type": "integer", "minimum": 1},
+    "included_source_files": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "included_rust_functions": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "schema_version",
+    "prompt_version",
+    "context_sha256",
+    "messages",
+    "request_bytes",
+    "estimated_input_tokens",
+    "included_source_files",
+    "included_rust_functions"
+  ],
+  "additionalProperties": false
+}
