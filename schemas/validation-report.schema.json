@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rusty-ai-language-converter.local/schemas/validation-report.schema.json",
+  "title": "ValidationReport",
+  "type": "object",
+  "properties": {
+    "schema_version": {"const": "1"},
+    "scope": {"const": "local"},
+    "catalog_id": {"type": "string", "minLength": 1},
+    "package_name": {"type": "string", "minLength": 1},
+    "output_directory": {"type": "string", "minLength": 1},
+    "source_archive_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "request_context_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "files": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {"$ref": "#/$defs/renderedFile"}
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/validationCheck"}
+    },
+    "passed": {"type": "boolean"},
+    "rustfmt_version": {"type": ["string", "null"]},
+    "cargo_version": {"type": ["string", "null"]},
+    "sdk_compilation_status": {"const": "not_run"},
+    "warnings": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "schema_version",
+    "scope",
+    "catalog_id",
+    "package_name",
+    "output_directory",
+    "source_archive_sha256",
+    "request_context_sha256",
+    "files",
+    "checks",
+    "passed",
+    "rustfmt_version",
+    "cargo_version",
+    "sdk_compilation_status",
+    "warnings"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "renderedFile": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "enum": ["Cargo.toml", "library.rs", "main.rs", "mikrobus.rs"]
+        },
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "size_bytes": {"type": "integer", "minimum": 0}
+      },
+      "required": ["path", "sha256", "size_bytes"],
+      "additionalProperties": false
+    },
+    "validationCheck": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "status": {"enum": ["passed", "failed", "skipped"]},
+        "summary": {"type": "string", "minLength": 1},
+        "command": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "stdout": {"type": "string"},
+        "stderr": {"type": "string"}
+      },
+      "required": [
+        "name",
+        "status",
+        "summary",
+        "command",
+        "stdout",
+        "stderr"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

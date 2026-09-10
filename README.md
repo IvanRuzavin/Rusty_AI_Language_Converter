@@ -78,8 +78,9 @@ provider-neutral model-context construction. A strict model-output contract and
 both offline and OpenAI Responses API clients now exercise the complete
 request/response boundary. A deterministic artifact renderer now validates
 cross-stage provenance, dependencies, and coverage before atomically creating
-the four-file project. Compilation and the complete conversion command have not
-been implemented yet.
+the four-file project. Local artifact-integrity, Rust formatting/syntax, and
+offline Cargo-metadata validation are also implemented. Full target-SDK
+compilation and the complete conversion command have not been implemented yet.
 
 The model identifier is configurable through `OPENAI_MODEL`. The
 cost-sensitive default is `gpt-5.6-luna`; the converter will not silently
@@ -167,6 +168,12 @@ To render and inspect an offline four-file fixture:
 
 ```bash
 PYTHONPATH=src .venv/bin/python examples/step_12_render.py
+```
+
+To render that fixture and run the local validation gate:
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_13_validate.py
 ```
 
 API credentials must be provided through the environment or a secret manager.

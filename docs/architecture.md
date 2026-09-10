@@ -194,6 +194,24 @@ Runs formatting, syntax, dependency, compilation, API-coverage, and behavior
 checks. A behavior harness will compare C and Rust driver activity through mock
 HAL/SDK layers where practical.
 
+The implemented local gate first verifies that the output directory still
+contains exactly the four regular files recorded by `RenderedPackage`, with
+matching sizes and SHA-256 hashes. It also rechecks the deterministic
+`Cargo.toml` and `mikrobus.rs` contents. Only intact packages proceed to local
+tools.
+
+`rustfmt --check` parses and formatting-checks all three Rust sources without
+following module children. `cargo metadata --offline --no-deps` validates the
+workspace marker and confirms that the entry remains `main.rs`; it cannot
+download dependencies. Tool versions, commands, bounded diagnostics, and each
+decision are captured in `ValidationReport`. Commands have timeouts, and a
+missing tool becomes a failed check rather than an uncaught exception.
+
+This report has local scope. Its SDK compilation status is always `not_run`, so
+passing it cannot be confused with a successful target build. A full
+`cargo check` remains dependent on the extension-generated SDK, target, and
+board configuration.
+
 Primary output: `ValidationReport`.
 
 ### 10. Orchestrator
@@ -270,6 +288,6 @@ tests/
 docs/
 ```
 
-The next project step is local Rust syntax, formatting, and project validation,
-followed by SDK-environment compilation when an extension-generated setup is
-available.
+The next project step is an orchestrator that connects the implemented stages
+behind one controlled command. SDK-environment compilation will be added when
+an extension-generated setup is available to the converter.

@@ -90,6 +90,14 @@ from rusty_ai_converter.render import (
     render_package,
     required_coverage_symbols,
 )
+from rusty_ai_converter.validate import (
+    DEFAULT_MAX_DIAGNOSTIC_BYTES,
+    DEFAULT_VALIDATION_TIMEOUT_SECONDS,
+    VALIDATION_CHECK_STATUSES,
+    ValidationCheck,
+    ValidationReport,
+    validate_rendered_package,
+)
 
 __all__ = [
     "CatalogError",
@@ -106,11 +114,13 @@ __all__ = [
     "COVERAGE_STATUSES",
     "ContextBuildError",
     "DEFAULT_MAX_OUTPUT_TOKENS",
+    "DEFAULT_MAX_DIAGNOSTIC_BYTES",
     "DEFAULT_MAX_REQUEST_BYTES",
     "DEFAULT_MAX_RENDER_BYTES",
     "DEFAULT_OPENAI_MODEL",
     "DEFAULT_REASONING_EFFORT",
     "DEFAULT_TIMEOUT_SECONDS",
+    "DEFAULT_VALIDATION_TIMEOUT_SECONDS",
     "CParserError",
     "ClickPackageIR",
     "CoverageEntry",
@@ -145,6 +155,9 @@ __all__ = [
     "SdkIndexError",
     "SdkMappingDatabase",
     "TranslationPlan",
+    "VALIDATION_CHECK_STATUSES",
+    "ValidationCheck",
+    "ValidationReport",
     "build_source_bundle",
     "build_sdk_mapping_database",
     "build_model_request",
@@ -163,6 +176,7 @@ __all__ = [
     "render_default_mikrobus",
     "render_package",
     "required_coverage_symbols",
+    "validate_rendered_package",
 ]
 
 __version__ = "0.1.0"

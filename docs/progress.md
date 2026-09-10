@@ -833,3 +833,87 @@ The Step 12 demonstration writes only beneath the ignored `output` directory.
 It normally reads the existing package cache, performs no OpenAI API request,
 requires no API key, and consumes no model tokens. Its optional `--download`
 path is the same ordinary HTTPS package download used in earlier steps.
+
+## Step 13: Validate rendered artifacts locally
+
+Step 13 adds `validate_rendered_package` and a versioned `ValidationReport`.
+This gate is deliberately local and read-only. It performs these checks:
+
+1. `artifact_integrity` verifies that the output still contains exactly the
+   four regular, non-symbolic-link files recorded by `RenderedPackage`. Every
+   size and SHA-256 digest must match. The deterministic `Cargo.toml` and
+   `mikrobus.rs` contents are checked again as well.
+2. `rustfmt` runs with `--check`, Rust 2024 edition, and
+   `skip_children=true`. This detects Rust syntax errors and formatting
+   differences without changing any source file.
+3. `cargo_metadata` runs with `--offline --no-deps`, validates the generated
+   workspace marker, and confirms that `main.rs` remains the selected entry.
+
+If artifact integrity fails, both tools are skipped. Otherwise, a failure in
+one tool does not hide the other tool's diagnostics. Missing executables,
+timeouts, invalid Cargo JSON, and nonzero exits become structured failed checks
+instead of uncaught subprocess errors. Captured stdout and stderr are limited
+to 64 KiB per stream.
+
+The report records the four file hashes, source and request provenance, exact
+commands, local tool versions, diagnostics, and an overall local `passed`
+value. It always records `sdk_compilation_status: not_run`. This is important:
+a passing Step 13 report proves local syntax/format/workspace checks only. It
+does not claim that the code compiles for a board or preserves device behavior.
+
+### Run the local validation demonstration
+
+Both `rustfmt` and `cargo` must be available on `PATH`:
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_13_validate.py
+```
+
+The command renders a formatted offline fixture beneath:
+
+```text
+output/step_13/ips-display-2/
+```
+
+Expected result: all three checks show `PASSED`. Repeating the command safely
+reuses the identical rendered package. The fixture is intentionally small and
+does not represent a translated IPS Display 2 driver.
+
+Print the complete machine-readable report:
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_13_validate.py --json
+```
+
+To see how an unavailable tool is reported without changing project files:
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_13_validate.py \
+    --output-root output/step_13_missing_tool \
+    --rustfmt rustfmt-does-not-exist
+```
+
+This intentional failure exits with status 1. Cargo still runs and reports its
+own independent result. Use `--timeout SECONDS`, `--rustfmt PATH`, or
+`--cargo PATH` to control local tool execution.
+
+When debugging in VS Code, open `examples/step_13_validate.py` and press `F5`.
+The existing launch configuration selects `.venv`, sets the workspace as the
+working directory, and adds `src` to `PYTHONPATH`.
+
+### Run all tests
+
+```bash
+PYTHONPATH=src .venv/bin/python -m unittest discover -s tests -v
+```
+
+Expected result: seventy tests finish with `OK`. The five new validator tests
+cover a successful report, artifact tampering, formatting failure, missing
+tools, invalid Cargo metadata, offline mode, and the rule that independent
+checks continue after a tool failure.
+
+The demonstration normally reads the existing package cache and writes only
+beneath the ignored `output` directory. Validation never accesses the network,
+requires no API key, makes no OpenAI request, and consumes no model tokens. As
+in earlier examples, only an explicit `--download` can permit an ordinary HTTPS
+package download if the selected package is absent from the local cache.
