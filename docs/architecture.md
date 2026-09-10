@@ -138,13 +138,13 @@ Owns communication with the configured OpenAI model. It requests structured
 output, handles refusals and incomplete results, records token/latency metadata,
 and returns parsed data. Credentials are supplied externally.
 
-The provider-neutral asynchronous interface and an offline fake implementation
-are now present. `ModelOutput` admits only `library.rs`, `main.rs`, required Rust
-crate names, an API-coverage ledger, and explicit assumptions, warnings, and
-unsupported items. It rejects unknown fields and Markdown-wrapped responses.
-`ModelConversion` adds the model and response IDs, request-context hash, prompt
-version, usage, and latency. The fake returns a prevalidated fixture and always
-records zero token use.
+The provider-neutral asynchronous interface now has offline fake and OpenAI
+Responses API implementations. `ModelOutput` admits only `library.rs`,
+`main.rs`, required Rust crate names, an API-coverage ledger, and explicit
+assumptions, warnings, and unsupported items. It rejects unknown fields and
+Markdown-wrapped responses. `ModelConversion` adds the model and response IDs,
+request-context hash, prompt version, usage, and latency. The fake returns a
+prevalidated fixture and always records zero token use.
 
 `Cargo.toml` and `mikrobus.rs` are intentionally absent from model output. The
 artifact renderer remains responsible for producing both files deterministically.
@@ -152,9 +152,13 @@ artifact renderer remains responsible for producing both files deterministically
 The model ID is read from `OPENAI_MODEL`. The initial cost-sensitive default is
 `gpt-5.6-luna`, and no automatic fallback may select a Sol model.
 
-The real OpenAI Responses API adapter is still pending. The rest of the
-converter already depends on the small interface, so it is testable without
-network access and is not coupled to Open WebUI.
+The OpenAI adapter uses strict Structured Outputs, disables response storage
+and truncation, performs no tool calls, and applies one whole-request timeout.
+It rejects refusals, incomplete/failed responses, absent usage metadata, and
+invalid output. Network access is disabled unless the caller explicitly opts
+in, automatic retries are disabled to avoid ambiguous repeated spending, and
+Sol model names and the `gpt-5.6` Sol alias are rejected. The rest of the
+converter depends only on the small interface and is not coupled to Open WebUI.
 
 Primary output: `ModelConversion`.
 
@@ -248,6 +252,5 @@ tests/
 docs/
 ```
 
-The next project step is adding the explicitly enabled OpenAI Responses API
-adapter, including strict structured output, refusal/incomplete-result handling,
-timeouts, usage capture, and the cost-sensitive configurable model choice.
+The next project step is the deterministic artifact renderer for `Cargo.toml`,
+the model-provided Rust sources, and the default `mikrobus.rs` mapping.

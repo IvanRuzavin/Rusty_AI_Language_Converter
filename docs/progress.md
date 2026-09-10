@@ -629,3 +629,110 @@ The normal Step 10 example reads local files and the existing validated cache.
 It requires no OpenAI key, makes no OpenAI API call, writes no generated Rust
 files, and consumes no model tokens. Only its explicit `--download` option can
 make an ordinary HTTPS request and write package data under `.cache`.
+
+## Step 11: Add the explicitly enabled OpenAI client
+
+Step 11 implements `OpenAIModelClient` with the OpenAI Responses API. The
+cost-sensitive default is exactly `gpt-5.6-luna`; `OPENAI_MODEL` or `--model`
+can select another non-Sol model. Both `gpt-5.6-sol` and its `gpt-5.6` alias are
+rejected so an environment setting cannot accidentally move this converter to
+the expensive Sol tier.
+
+The API request uses:
+
+- the two system/user messages built in Step 9;
+- `text.format` with a provider-compatible form of the strict Step 10 schema;
+- low reasoning effort and a 32,768-token maximum output by default;
+- disabled server-side response storage and input truncation;
+- the context SHA-256 as a stable prompt-cache key;
+- no tools and no automatic retry;
+- a 180-second whole-request timeout.
+
+Completed responses must include output text and token usage. Refusals,
+incomplete or failed statuses, malformed structured data, and missing
+provenance are explicit errors. The API key is read only from
+`OPENAI_API_KEY`; it is never accepted as a command argument, serialized,
+printed, or written to the cache.
+
+The implementation follows the current official documentation for the
+Responses API and Structured Outputs:
+
+- <https://developers.openai.com/api/reference/resources/responses/methods/create>
+- <https://developers.openai.com/api/docs/guides/structured-outputs>
+- <https://developers.openai.com/api/docs/models/gpt-5.6-luna>
+
+### Preview safely without an SDK or API key
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_11_openai.py
+```
+
+This rebuilds the cached IPS Display 2 request and prints the selected model,
+approximate input size, output cap, reasoning effort, and timeout. It does not
+import the OpenAI SDK or make an API request because `--yes-use-openai` is
+absent.
+
+### Install the OpenAI SDK
+
+```bash
+.venv/bin/python -m pip install openai==2.29.0
+```
+
+This accesses the Python package index and writes packages inside `.venv`. It
+does not make an OpenAI API request and consumes no model tokens. The version
+is pinned in the root `pyproject.toml` and matches the checked-in Open WebUI
+reference environment.
+
+### Explicitly run one paid conversion request
+
+First provide the key without putting it in a command-line argument:
+
+```bash
+read -rsp "OpenAI API key: " OPENAI_API_KEY
+export OPENAI_API_KEY
+echo
+```
+
+Then authorize one request:
+
+```bash
+PYTHONPATH=src .venv/bin/python examples/step_11_openai.py \
+    --yes-use-openai
+```
+
+This sends the Step 9 message contents to OpenAI and consumes billable input,
+output, and possibly reasoning tokens. It prints actual usage after a completed
+response. It validates but does not write the generated Rust files. Add
+`--json` to print the complete response locally.
+
+Remove the key from the shell when finished:
+
+```bash
+unset OPENAI_API_KEY
+```
+
+For VS Code debugging, put `OPENAI_API_KEY=...` in a local `.env` file, which
+is now ignored by Git, and add this property to the selected launch
+configuration:
+
+```json
+"envFile": "${workspaceFolder}/.env"
+```
+
+Add `"--yes-use-openai"` to `args` only when you intend to make a paid call.
+Without that argument, `F5` remains a local preview.
+
+### Run all tests
+
+```bash
+PYTHONPATH=src .venv/bin/python -m unittest discover -s tests -v
+```
+
+Expected result: fifty-eight tests finish with `OK`. The seven new tests use a
+local stub, not the OpenAI SDK or network. They cover the opt-in gate, Luna
+default, Sol rejection, strict request shape, disabled response storage, token
+usage, incomplete responses, refusals, malformed output, and timeouts.
+
+The test suite and default example remain offline and consume no model tokens.
+The explicitly supplied `--download` option can separately permit an ordinary
+HTTPS package download, while only `--yes-use-openai` permits the model call.

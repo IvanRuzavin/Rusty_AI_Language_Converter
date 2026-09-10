@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass, field
 import json
 from typing import Any, ClassVar, Mapping
@@ -34,10 +35,56 @@ _MODEL_OUTPUT_KEYS = frozenset(
 _COVERAGE_KEYS = frozenset(
     {"source_symbol", "source_kind", "status", "rust_symbol", "rationale"}
 )
+_MODEL_OUTPUT_RESPONSE_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "schema_version": {"type": "string", "enum": ["1"]},
+        "library_rs": {"type": "string"},
+        "main_rs": {"type": "string"},
+        "required_rust_crates": {
+            "type": "array",
+            "items": {"type": "string"},
+        },
+        "api_coverage_ledger": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "source_symbol": {"type": "string"},
+                    "source_kind": {
+                        "type": "string",
+                        "enum": sorted(COVERAGE_KINDS),
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": sorted(COVERAGE_STATUSES),
+                    },
+                    "rust_symbol": {"type": ["string", "null"]},
+                    "rationale": {"type": "string"},
+                },
+                "required": sorted(_COVERAGE_KEYS),
+                "additionalProperties": False,
+            },
+        },
+        "assumptions": {"type": "array", "items": {"type": "string"}},
+        "warnings": {"type": "array", "items": {"type": "string"}},
+        "unsupported_items": {
+            "type": "array",
+            "items": {"type": "string"},
+        },
+    },
+    "required": sorted(_MODEL_OUTPUT_KEYS),
+    "additionalProperties": False,
+}
 
 
 class ModelOutputError(Exception):
     """Model text or structured data does not satisfy the output contract."""
+
+
+def model_output_response_schema() -> dict[str, Any]:
+    """Return a fresh OpenAI Structured Outputs schema for ``ModelOutput``."""
+    return deepcopy(_MODEL_OUTPUT_RESPONSE_SCHEMA)
 
 
 def _text(value: Any, field_name: str) -> str:

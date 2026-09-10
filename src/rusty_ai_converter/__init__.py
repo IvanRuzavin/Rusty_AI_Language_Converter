@@ -57,11 +57,17 @@ from rusty_ai_converter.context import (
     build_model_request,
 )
 from rusty_ai_converter.model_client import (
+    DEFAULT_MAX_OUTPUT_TOKENS,
+    DEFAULT_OPENAI_MODEL,
+    DEFAULT_REASONING_EFFORT,
+    DEFAULT_TIMEOUT_SECONDS,
     FakeModelClient,
     ModelClient,
+    ModelClientConfigurationError,
     ModelClientError,
     ModelConversion,
     ModelUsage,
+    OpenAIModelClient,
 )
 from rusty_ai_converter.model_output import (
     COVERAGE_KINDS,
@@ -69,6 +75,7 @@ from rusty_ai_converter.model_output import (
     CoverageEntry,
     ModelOutput,
     ModelOutputError,
+    model_output_response_schema,
     parse_model_output,
 )
 
@@ -85,7 +92,11 @@ __all__ = [
     "COVERAGE_KINDS",
     "COVERAGE_STATUSES",
     "ContextBuildError",
+    "DEFAULT_MAX_OUTPUT_TOKENS",
     "DEFAULT_MAX_REQUEST_BYTES",
+    "DEFAULT_OPENAI_MODEL",
+    "DEFAULT_REASONING_EFFORT",
+    "DEFAULT_TIMEOUT_SECONDS",
     "CParserError",
     "ClickPackageIR",
     "CoverageEntry",
@@ -94,6 +105,7 @@ __all__ = [
     "ManifestLibrary",
     "FakeModelClient",
     "ModelClient",
+    "ModelClientConfigurationError",
     "ModelClientError",
     "ModelConversion",
     "ModelMessage",
@@ -101,6 +113,7 @@ __all__ = [
     "ModelOutputError",
     "ModelRequest",
     "ModelUsage",
+    "OpenAIModelClient",
     "PackageCatalog",
     "PackageInventory",
     "PackageManifest",
@@ -125,6 +138,7 @@ __all__ = [
     "load_cached_archive",
     "parse_catalog_data",
     "parse_c_file",
+    "model_output_response_schema",
     "parse_model_output",
     "parse_source_bundle",
 ]
